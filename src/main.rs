@@ -1,12 +1,14 @@
 use std::ops::Range;
 
+const WINDOW_SIZE: f32 = 300.0;
+
 use gpui::{
     App, Application, Bounds, ClipboardItem, Context, CursorStyle, ElementId, ElementInputHandler,
     Entity, EntityInputHandler, FocusHandle, Focusable, GlobalElementId, KeyBinding, Keystroke,
     LayoutId, MouseButton, MouseDownEvent, MouseMoveEvent, MouseUpEvent, PaintQuad, Pixels, Point,
     ShapedLine, SharedString, Style, TextRun, UTF16Selection, UnderlineStyle, Window, WindowBounds,
-    WindowOptions, actions, black, div, fill, hsla, opaque_grey, point, prelude::*, px, relative,
-    rgb, rgba, size, white, yellow,
+    WindowOptions, actions, black, div, fill, hsla, opaque_grey, percentage, point, prelude::*, px,
+    relative, rgb, rgba, size, white, yellow,
 };
 use unicode_segmentation::*;
 
@@ -617,7 +619,7 @@ impl Focusable for InputExample {
 }
 
 impl Render for InputExample {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let EMOJIS = vec![
             "🎃", "🎄", "🎆", "🎇", "🧨", "✨", "🎈", "🎉", "🎊", "🎋", "🎍", "🎎", "🎏", "🎐",
             "🎑", "🧧", "🎀", "🎁", "🎗️", "🎟️", "🎫", "🎖️", "🏆", "🏅", "🥇", "🥈", "🥉", "⚽",
@@ -654,7 +656,7 @@ impl Render for InputExample {
                     .flex_wrap()
                     .gap_2()
                     .children(EMOJIS.iter().map(|&moji| moji))
-                    .text_size(px(40.0)),
+                    .text_size(px(WINDOW_SIZE / 10.0)),
             )
     }
 }
