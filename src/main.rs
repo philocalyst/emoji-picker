@@ -460,10 +460,6 @@ impl Element for TextElement {
         let runs = if let Some(marked_range) = input.marked_range.as_ref() {
             vec![
                 TextRun {
-                    len: marked_range.start,
-                    ..run.clone()
-                },
-                TextRun {
                     len: marked_range.end - marked_range.start,
                     underline: Some(UnderlineStyle {
                         color: Some(run.color),
@@ -620,15 +616,6 @@ impl Focusable for InputExample {
     }
 }
 
-impl InputExample {
-    fn on_reset_click(&mut self, _: &MouseUpEvent, _window: &mut Window, cx: &mut Context<Self>) {
-        self.recent_keystrokes.clear();
-        self.text_input
-            .update(cx, |text_input, _cx| text_input.reset());
-        cx.notify();
-    }
-}
-
 impl Render for InputExample {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
@@ -644,27 +631,12 @@ impl Render for InputExample {
                     .border_color(black())
                     .flex()
                     .flex_row()
-                    .justify_between()
-                    .child(format!("Keyboard {}", cx.keyboard_layout().name()))
-                    .child(
-                        div()
-                            .border_1()
-                            .border_color(black())
-                            .px_2()
-                            .bg(yellow())
-                            .child("Reset")
-                            .hover(|style| {
-                                style
-                                    .bg(yellow().blend(opaque_grey(0.5, 0.5)))
-                                    .cursor_pointer()
-                            })
-                            .on_mouse_up(MouseButton::Left, cx.listener(Self::on_reset_click)),
-                    ),
+                    .justify_between(),
             )
             .child(self.text_input.clone())
             .children(self.recent_keystrokes.iter().rev().map(|ks| {
                 format!(
-                    "{:} {}",
+                    "{:} 🙂{}",
                     ks.unparse(),
                     if let Some(key_char) = ks.key_char.as_ref() {
                         format!("-> {:?}", key_char)
