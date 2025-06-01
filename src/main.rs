@@ -630,6 +630,8 @@ impl Render for InputExample {
             "🪢",
         ];
 
+        let window_size = window.viewport_size().width.0;
+
         div()
             .bg(rgb(0xaaaaaa))
             .track_focus(&self.focus_handle(cx))
@@ -654,9 +656,9 @@ impl Render for InputExample {
                     .flex()
                     .flex_row()
                     .flex_wrap()
-                    .gap_2()
+                    .gap(px(window_size / 48.0))
                     .children(EMOJIS.iter().map(|&moji| moji))
-                    .text_size(px(WINDOW_SIZE / 10.0)),
+                    .text_size(px(window_size / 12.0)),
             )
     }
 }
