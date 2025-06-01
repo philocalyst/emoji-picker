@@ -644,8 +644,18 @@ impl Render for InputExample {
                     .justify_between(),
             )
             .child(self.text_input.clone())
-            .text_xl()
-            .children(EMOJIS.iter().map(|&moji| div().child(moji)))
+            .child(
+                div()
+                    .bg(white())
+                    .border_b_1()
+                    .border_color(black())
+                    .flex()
+                    .flex_row()
+                    .flex_wrap()
+                    .gap_2()
+                    .children(EMOJIS.iter().map(|&moji| moji))
+                    .text_size(px(40.0)),
+            )
     }
 }
 
