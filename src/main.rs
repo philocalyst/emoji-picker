@@ -644,12 +644,6 @@ impl Render for InputExample {
                     .justify_between(),
             )
             .child(self.text_input.clone())
-            .children(self.recent_keystrokes.iter().rev().map(|ks| {
-                EMOJIS.iter().fold(String::new(), |mut acc, ele| {
-                    acc.push_str(ele);
-                    acc
-                })
-            }))
     }
 }
 
