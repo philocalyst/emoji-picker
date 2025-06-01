@@ -618,6 +618,16 @@ impl Focusable for InputExample {
 
 impl Render for InputExample {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let EMOJIS = vec![
+            "🎃", "🎄", "🎆", "🎇", "🧨", "✨", "🎈", "🎉", "🎊", "🎋", "🎍", "🎎", "🎏", "🎐",
+            "🎑", "🧧", "🎀", "🎁", "🎗️", "🎟️", "🎫", "🎖️", "🏆", "🏅", "🥇", "🥈", "🥉", "⚽",
+            "⚾", "🥎", "🏀", "🏐", "🏈", "🏉", "🎾", "🥏", "🎳", "🏏", "🏑", "🏒", "🥍", "🏓",
+            "🏸", "🥊", "🥋", "🥅", "⛳", "⛸️", "🎣", "🤿", "🎽", "🎿", "🛷", "🥌", "🎯", "🪀",
+            "🪁", "🔫", "🎱", "🔮", "🪄", "🎮", "🕹️", "🎰", "🎲", "🧩", "🧸", "🪅", "🪩", "🪆",
+            "♠️", "♥️", "♦️", "♣️", "♟️", "🃏", "🀄", "🎴", "🎭", "🖼️", "🎨", "🧵", "🪡", "🧶",
+            "🪢",
+        ];
+
         div()
             .bg(rgb(0xaaaaaa))
             .track_focus(&self.focus_handle(cx))
@@ -635,15 +645,10 @@ impl Render for InputExample {
             )
             .child(self.text_input.clone())
             .children(self.recent_keystrokes.iter().rev().map(|ks| {
-                format!(
-                    "{:} 🙂{}",
-                    ks.unparse(),
-                    if let Some(key_char) = ks.key_char.as_ref() {
-                        format!("-> {:?}", key_char)
-                    } else {
-                        "".to_owned()
-                    }
-                )
+                EMOJIS.iter().fold(String::new(), |mut acc, ele| {
+                    acc.push_str(ele);
+                    acc
+                })
             }))
     }
 }
