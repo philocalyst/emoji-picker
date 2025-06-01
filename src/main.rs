@@ -663,6 +663,24 @@ impl Render for InputExample {
     }
 }
 
+struct EmojiButton {
+    emoji: String,
+}
+
+impl EmojiButton {
+    fn emoji_on_click(&mut self, _: &MouseUpEvent, window: &mut Window, cx: &mut Context<Self>) {
+        println!("{}", self.emoji)
+    }
+}
+
+impl IntoElement for EmojiButton {
+    type Element = Div;
+
+    fn into_element(self) -> Self::Element {
+        div().child(self.emoji)
+    }
+}
+
 fn main() {
     Application::new().run(|cx: &mut App| {
         let bounds = Bounds::centered(None, size(px(300.0), px(300.0)), cx);
