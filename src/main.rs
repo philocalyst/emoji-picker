@@ -644,6 +644,8 @@ impl Render for InputExample {
                     .justify_between(),
             )
             .child(self.text_input.clone())
+            .text_xl()
+            .children(EMOJIS.iter().map(|&moji| div().child(moji)))
     }
 }
 
