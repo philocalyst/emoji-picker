@@ -3,12 +3,13 @@ use std::ops::Range;
 const WINDOW_SIZE: f32 = 300.0;
 
 use gpui::{
-    App, Application, Bounds, ClipboardItem, Context, CursorStyle, ElementId, ElementInputHandler,
-    Entity, EntityInputHandler, FocusHandle, Focusable, GlobalElementId, KeyBinding, Keystroke,
-    LayoutId, MouseButton, MouseDownEvent, MouseMoveEvent, MouseUpEvent, PaintQuad, Pixels, Point,
-    ShapedLine, SharedString, Style, TextRun, UTF16Selection, UnderlineStyle, Window, WindowBounds,
-    WindowOptions, actions, black, div, fill, hsla, opaque_grey, percentage, point, prelude::*, px,
-    relative, rgb, rgba, size, white, yellow,
+    App, Application, Bounds, ClipboardItem, Context, CursorStyle, Div, ElementId,
+    ElementInputHandler, Entity, EntityInputHandler, FocusHandle, Focusable, GlobalElementId,
+    KeyBinding, Keystroke, LayoutId, MouseButton, MouseDownEvent, MouseEvent, MouseMoveEvent,
+    MouseUpEvent, PaintQuad, Pixels, Point, ShapedLine, SharedString, Style, TextRun,
+    UTF16Selection, UnderlineStyle, Window, WindowBounds, WindowOptions, actions, black, div, fill,
+    hsla, opaque_grey, percentage, point, prelude::*, px, relative, rems, rgb, rgba, size, white,
+    yellow,
 };
 use unicode_segmentation::*;
 
@@ -631,6 +632,7 @@ impl Render for InputExample {
         ];
 
         let window_size = window.viewport_size().width.0;
+        let mut id = 0;
 
         div()
             .bg(rgb(0xaaaaaa))
@@ -656,9 +658,16 @@ impl Render for InputExample {
                     .flex()
                     .flex_row()
                     .flex_wrap()
-                    .gap(px(window_size / 48.0))
-                    .children(EMOJIS.iter().map(|&moji| moji))
-                    .text_size(px(window_size / 12.0)),
+                    .justify_center()
+                    .gap(rems(0.25))
+                    .children(EMOJIS.iter().enumerate().map(|(id, &moji)| {
+                        div()
+                            .id(id)
+                            .child(moji)
+                            .cursor_pointer()
+                            .on_click(move |_event, _window, _cx| println!("{moji}"))
+                    }))
+                    .text_size(rems(1.5)),
             )
     }
 }
@@ -703,6 +712,7 @@ fn main() {
         let window = cx
             .open_window(
                 WindowOptions {
+                    titlebar: None,
                     window_bounds: Some(WindowBounds::Windowed(bounds)),
                     ..Default::default()
                 },
