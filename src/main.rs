@@ -1,9 +1,13 @@
+use emoji_search::{self, search};
+use emojis;
+use emojis::emoji::Emoji;
 use std::ops::Range;
+use std::sync::LazyLock;
 
 const WINDOW_SIZE: f32 = 300.0;
 
 use gpui::{
-    App, Application, Bounds, ClipboardItem, Context, CursorStyle, Div, ElementId,
+    App, Application, AsyncApp, Bounds, ClipboardItem, Context, CursorStyle, Div, ElementId,
     ElementInputHandler, Entity, EntityInputHandler, FocusHandle, Focusable, GlobalElementId,
     KeyBinding, Keystroke, LayoutId, MouseButton, MouseDownEvent, MouseEvent, MouseMoveEvent,
     MouseUpEvent, PaintQuad, Pixels, Point, ShapedLine, SharedString, Style, TextRun,
@@ -608,6 +612,7 @@ impl Focusable for TextInput {
 }
 
 struct InputExample {
+    emojis: Vec<Emoji>,
     text_input: Entity<TextInput>,
     recent_keystrokes: Vec<Keystroke>,
     focus_handle: FocusHandle,
@@ -619,18 +624,23 @@ impl Focusable for InputExample {
     }
 }
 
+static EMOJI_DATA: LazyLock<emoji_search::constants::EmojiData> =
+    std::sync::LazyLock::new(|| emoji_search::constants::load_emoji_data().unwrap());
+
+async fn get_emojis(input: &str) -> Vec<Emoji> {
+    if let Ok(results) = emoji_search::search_emojis(&input, Some(10), None, &EMOJI_DATA).await {
+        if !results.len() > 0 {
+            emojis::common::all_emojis().to_vec()
+        } else {
+            results
+        }
+    } else {
+        emojis::common::all_emojis().to_vec()
+    }
+}
+
 impl Render for InputExample {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let EMOJIS = vec![
-            "🎃", "🎄", "🎆", "🎇", "🧨", "✨", "🎈", "🎉", "🎊", "🎋", "🎍", "🎎", "🎏", "🎐",
-            "🎑", "🧧", "🎀", "🎁", "🎗️", "🎟️", "🎫", "🎖️", "🏆", "🏅", "🥇", "🥈", "🥉", "⚽",
-            "⚾", "🥎", "🏀", "🏐", "🏈", "🏉", "🎾", "🥏", "🎳", "🏏", "🏑", "🏒", "🥍", "🏓",
-            "🏸", "🥊", "🥋", "🥅", "⛳", "⛸️", "🎣", "🤿", "🎽", "🎿", "🛷", "🥌", "🎯", "🪀",
-            "🪁", "🔫", "🎱", "🔮", "🪄", "🎮", "🕹️", "🎰", "🎲", "🧩", "🧸", "🪅", "🪩", "🪆",
-            "♠️", "♥️", "♦️", "♣️", "♟️", "🃏", "🀄", "🎴", "🎭", "🖼️", "🎨", "🧵", "🪡", "🧶",
-            "🪢",
-        ];
-
         let window_size = window.viewport_size().width.0;
         let mut id = 0;
 
@@ -660,10 +670,10 @@ impl Render for InputExample {
                     .flex_wrap()
                     .justify_center()
                     .gap(rems(0.25))
-                    .children(EMOJIS.iter().enumerate().map(|(id, &moji)| {
+                    .children(emojis::common::EMOJIS.iter().enumerate().map(|(id, moji)| {
                         div()
                             .id(id)
-                            .child(moji)
+                            .child(moji.emoji.clone())
                             .cursor_pointer()
                             .on_click(move |_event, _window, _cx| println!("{moji}"))
                     }))
@@ -729,6 +739,7 @@ fn main() {
                         is_selecting: false,
                     });
                     cx.new(|cx| InputExample {
+                        emojis: vec![],
                         text_input,
                         recent_keystrokes: vec![],
                         focus_handle: cx.focus_handle(),
@@ -742,6 +753,10 @@ fn main() {
                 view.recent_keystrokes.push(ev.keystroke.clone());
                 cx.notify();
             })
+        })
+        .detach();
+        cx.spawn(|cx: &mut AsyncApp| async move {
+            let emojis = cx.background_executor().spawn(async move {});
         })
         .detach();
         cx.on_keyboard_layout_change({
