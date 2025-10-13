@@ -630,20 +630,21 @@ static EMOJI_DATA: LazyLock<emoji_search::types::EmojiData> =
 static SEARCHER: LazyLock<emoji_search::EmojiSearcher> =
     LazyLock::new(|| emoji_search::EmojiSearcher::new(&*EMOJI_DATA, None));
 
-}
-
 impl Render for InputExample {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let window_size = window.viewport_size().width;
         let mut id = 0;
 
-        let active_text = self.text_input.clone().read(cx).content.clone();
+        let active_text = self.text_input.clone().read(cx).content.clone().to_string();
 
         let matcher: &'static emoji_search::EmojiSearcher = &*SEARCHER;
 
-        let active_emoji: Vec<&Emoji> = matcher
-            .search_best_matching_emojis(&active_text.to_string(), Some(10))
-            .unwrap();
+        let active_emoji: Vec<&Emoji> = match active_text.as_str() {
+            "" => emoji::lookup_by_glyph::iter_emoji().collect(),
+            _ => matcher
+                .search_best_matching_emojis(&active_text, Some(10))
+                .unwrap(),
+        };
 
         div()
             .bg(rgb(0xaaaaaa))
