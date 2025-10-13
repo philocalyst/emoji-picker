@@ -1,6 +1,6 @@
+use emoji;
+use emoji::Emoji;
 use emoji_search::{self, search};
-use emojis;
-use emojis::emoji::Emoji;
 use std::ops::Range;
 use std::sync::LazyLock;
 
@@ -670,13 +670,17 @@ impl Render for InputExample {
                     .flex_wrap()
                     .justify_center()
                     .gap(rems(0.25))
-                    .children(emojis::common::EMOJIS.iter().enumerate().map(|(id, moji)| {
-                        div()
-                            .id(id)
-                            .child(moji.emoji.clone())
-                            .cursor_pointer()
-                            .on_click(move |_event, _window, _cx| println!("{moji}"))
-                    }))
+                    .children(
+                        emoji::lookup_by_glyph::iter_emoji()
+                            .enumerate()
+                            .map(|(id, moji)| {
+                                div()
+                                    .id(id)
+                                    .child(moji.glyph.clone())
+                                    .cursor_pointer()
+                                    .on_click(move |_event, _window, _cx| println!("{moji:?}"))
+                            }),
+                    )
                     .text_size(rems(1.5)),
             )
     }
