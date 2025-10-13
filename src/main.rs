@@ -1,6 +1,6 @@
 use emoji;
 use emoji::Emoji;
-use emoji_search::{self, search};
+use emoji_search;
 use std::ops::Range;
 use std::sync::LazyLock;
 
@@ -490,7 +490,7 @@ impl Element for TextElement {
         let font_size = style.font_size.to_pixels(window.rem_size());
         let line = window
             .text_system()
-            .shape_line(display_text, font_size, &runs);
+            .shape_line(display_text, font_size, &runs, None);
 
         let cursor_pos = line.x_for_index(cursor);
         let (selection, cursor) = if selected_range.is_empty() {
@@ -644,7 +644,7 @@ static SEARCHER: LazyLock<emoji_search::EmojiSearcher> =
 
 impl Render for InputExample {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let window_size = window.viewport_size().width.0;
+        let window_size = window.viewport_size().width;
         let mut id = 0;
 
         div()
