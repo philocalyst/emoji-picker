@@ -627,16 +627,6 @@ impl Focusable for InputExample {
 static EMOJI_DATA: LazyLock<emoji_search::types::EmojiData> =
     std::sync::LazyLock::new(|| emoji_search::types::load_emoji_data().unwrap());
 
-async fn get_emojis(input: &str) -> Vec<Emoji> {
-    if let Ok(results) = emoji_search::search_emojis(&input, Some(10), None, &EMOJI_DATA).await {
-        if !results.len() > 0 {
-            emojis::common::all_emojis().to_vec()
-        } else {
-            results
-        }
-    } else {
-        emojis::common::all_emojis().to_vec()
-    }
 static SEARCHER: LazyLock<emoji_search::EmojiSearcher> =
     LazyLock::new(|| emoji_search::EmojiSearcher::new(&*EMOJI_DATA, None));
 
