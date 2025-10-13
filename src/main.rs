@@ -4,16 +4,13 @@ use emoji_search;
 use std::ops::Range;
 use std::sync::LazyLock;
 
-const WINDOW_SIZE: f32 = 300.0;
-
 use gpui::{
-    App, Application, AsyncApp, Bounds, ClipboardItem, Context, CursorStyle, Div, ElementId,
-    ElementInputHandler, Entity, EntityInputHandler, FocusHandle, Focusable, GlobalElementId,
-    KeyBinding, Keystroke, LayoutId, MouseButton, MouseDownEvent, MouseEvent, MouseMoveEvent,
-    MouseUpEvent, PaintQuad, Pixels, Point, ShapedLine, SharedString, Style, TextRun,
-    UTF16Selection, UnderlineStyle, Window, WindowBounds, WindowOptions, actions, black, div, fill,
-    hsla, opaque_grey, percentage, point, prelude::*, px, relative, rems, rgb, rgba, size, white,
-    yellow,
+    App, Application, Bounds, ClipboardItem, Context, CursorStyle, ElementId, ElementInputHandler,
+    Entity, EntityInputHandler, FocusHandle, Focusable, GlobalElementId, KeyBinding, Keystroke,
+    LayoutId, MouseButton, MouseDownEvent, MouseMoveEvent, MouseUpEvent, PaintQuad, Pixels, Point,
+    ShapedLine, SharedString, Style, TextRun, UTF16Selection, UnderlineStyle, Window, WindowBounds,
+    WindowOptions, actions, black, div, fill, hsla, point, prelude::*, px, relative, rems, rgb,
+    rgba, size, white,
 };
 use unicode_segmentation::*;
 
@@ -632,8 +629,8 @@ static SEARCHER: LazyLock<emoji_search::EmojiSearcher> =
 
 impl Render for InputExample {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let window_size = window.viewport_size().width;
-        let mut id = 0;
+        let _ = window.viewport_size().width;
+        let _ = 0;
 
         let active_text = self.text_input.clone().read(cx).content.clone().to_string();
 
@@ -675,30 +672,12 @@ impl Render for InputExample {
                     .children(active_emoji.into_iter().enumerate().map(|(id, moji)| {
                         div()
                             .id(id)
-                            .child(moji.glyph.clone())
+                            .child(moji.glyph)
                             .cursor_pointer()
                             .on_click(move |_event, _window, _cx| println!("{moji:?}"))
                     }))
                     .text_size(rems(1.5)),
             )
-    }
-}
-
-struct EmojiButton {
-    emoji: String,
-}
-
-impl EmojiButton {
-    fn emoji_on_click(&mut self, _: &MouseUpEvent, window: &mut Window, cx: &mut Context<Self>) {
-        println!("{}", self.emoji)
-    }
-}
-
-impl IntoElement for EmojiButton {
-    type Element = Div;
-
-    fn into_element(self) -> Self::Element {
-        div().child(self.emoji)
     }
 }
 
