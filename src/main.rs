@@ -637,6 +637,14 @@ impl Render for InputExample {
         let window_size = window.viewport_size().width;
         let mut id = 0;
 
+        let active_text = self.text_input.clone().read(cx).content.clone();
+
+        let matcher: &'static emoji_search::EmojiSearcher = &*SEARCHER;
+
+        let active_emoji: Vec<&Emoji> = matcher
+            .search_best_matching_emojis(&active_text.to_string(), Some(10))
+            .unwrap();
+
         div()
             .bg(rgb(0xaaaaaa))
             .track_focus(&self.focus_handle(cx))
@@ -663,17 +671,13 @@ impl Render for InputExample {
                     .flex_wrap()
                     .justify_center()
                     .gap(rems(0.25))
-                    .children(
-                        emoji::lookup_by_glyph::iter_emoji()
-                            .enumerate()
-                            .map(|(id, moji)| {
-                                div()
-                                    .id(id)
-                                    .child(moji.glyph.clone())
-                                    .cursor_pointer()
-                                    .on_click(move |_event, _window, _cx| println!("{moji:?}"))
-                            }),
-                    )
+                    .children(active_emoji.into_iter().enumerate().map(|(id, moji)| {
+                        div()
+                            .id(id)
+                            .child(moji.glyph.clone())
+                            .cursor_pointer()
+                            .on_click(move |_event, _window, _cx| println!("{moji:?}"))
+                    }))
                     .text_size(rems(1.5)),
             )
     }
