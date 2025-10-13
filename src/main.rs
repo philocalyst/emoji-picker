@@ -759,16 +759,6 @@ fn main() {
             })
         })
         .detach();
-        cx.spawn(|cx: &mut AsyncApp| async move {
-            let emojis = cx.background_executor().spawn(async move {});
-        })
-        .detach();
-        cx.on_keyboard_layout_change({
-            move |cx| {
-                window.update(cx, |_, _, cx| cx.notify()).ok();
-            }
-        })
-        .detach();
 
         window
             .update(cx, |view, window, cx| {
