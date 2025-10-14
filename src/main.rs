@@ -113,6 +113,8 @@ fn main() {
 
                     window.focus(&input_state.read(cx).focus_handle(cx));
 
+                    gpui_component::init(cx);
+
                     // Subscribe with correct closure signature
                     cx.subscribe(
                         &input_state,
