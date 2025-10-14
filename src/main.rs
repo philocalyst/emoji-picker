@@ -7,8 +7,8 @@ use std::sync::LazyLock;
 
 use gpui::{
     App, Application, Bounds, Context, Entity, FocusHandle, Focusable, KeyBinding, Keystroke,
-    MouseButton, Pixels, SharedString, Subscription, Window, WindowBounds, WindowOptions, actions,
-    black, div, prelude::*, px, rems, rgb, rgba, size, white,
+    Window, WindowBounds, WindowOptions, actions, black, div, prelude::*, px, rems, rgb, size,
+    uniform_list, white,
 };
 use gpui_component::input::{InputState, TextInput};
 use gpui_component::theme::Theme;
@@ -51,6 +51,14 @@ impl Render for InputExample {
         };
 
         div()
+            .child(
+                TextInput::new(&self.input_state)
+                    .appearance(true)
+                    .cleanable()
+                    .bg(rgb(0xeeeeee))
+                    .w_full()
+                    .p(px(4.)),
+            )
             .bg(rgb(0xaaaaaa))
             .track_focus(&self.focus_handle(cx))
             .flex()
@@ -66,29 +74,26 @@ impl Render for InputExample {
                     .justify_between(),
             )
             .child(
-                TextInput::new(&self.input_state)
-                    .appearance(true)
-                    .bg(rgb(0xeeeeee))
-                    .p(px(4.)),
-            )
-            .child(
-                div()
-                    .bg(white())
-                    .border_b_1()
-                    .border_color(black())
-                    .flex()
-                    .flex_row()
-                    .flex_wrap()
-                    .justify_center()
-                    .gap(rems(0.25))
-                    .children(active_emoji.into_iter().enumerate().map(|(id, moji)| {
-                        div().id(id).child(moji.glyph).cursor_pointer().on_click(
-                            move |_event, _window, _cx| {
-                                println!("{moji:?}");
-                            },
-                        )
-                    }))
-                    .text_size(rems(1.5)),
+                uniform_list(
+                    "entries",
+                    50,
+                    cx.processor(move |_this, range, _window, _cx| {
+                        let mut items = Vec::new();
+
+                        let emoji = active_emoji.clone();
+
+                        emoji.into_iter().enumerate().for_each(|(id, moji)| {
+                            items.push(div().id(id).child(moji.glyph).cursor_pointer().on_click(
+                                move |_event, _window, _cx| {
+                                    println!("{moji:?}");
+                                },
+                            ))
+                        });
+
+                        items
+                    }),
+                )
+                .text_size(rems(1.5)),
             )
     }
 }
