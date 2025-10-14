@@ -65,7 +65,12 @@ impl Render for InputExample {
                     .flex_row()
                     .justify_between(),
             )
-            .child(self.text_input.clone())
+            .child(
+                TextInput::new(&self.input_state)
+                    .appearance(true)
+                    .bg(rgb(0xeeeeee))
+                    .p(px(4.)),
+            )
             .child(
                 div()
                     .bg(white())
