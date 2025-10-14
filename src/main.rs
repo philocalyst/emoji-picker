@@ -123,6 +123,8 @@ fn main() {
                         focus_handle: cx.focus_handle(),
                     });
 
+                    // Wrap InputExample in Root - convert to AnyView
+                    cx.new(|cx| Root::new(input_example.into(), window, cx))
                 },
             )
             .unwrap();
