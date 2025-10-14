@@ -111,6 +111,8 @@ fn main() {
                     let input_state =
                         cx.new(|cx| InputState::new(window, cx).placeholder("Type here..."));
 
+                    window.focus(&input_state.read(cx).focus_handle(cx));
+
                     // Subscribe with correct closure signature
                     cx.subscribe(
                         &input_state,
