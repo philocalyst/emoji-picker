@@ -76,21 +76,28 @@ impl Render for InputExample {
             .child(
                 uniform_list(
                     "entries",
-                    50,
-                    cx.processor(move |_this, range, _window, _cx| {
-                        let mut items = Vec::new();
+                    active_emoji.len(),
+                    cx.processor({
+                        let emojis = active_emoji.clone();
+                        move |_this, range, _window, _cx| {
+                            let mut items: Vec<_> = Vec::with_capacity(emojis.len());
 
-                        let emoji = active_emoji.clone();
+                            for idx in range {
+                                let maybe: Option<&&Emoji> = emojis.get(idx);
 
-                        emoji.into_iter().enumerate().for_each(|(id, moji)| {
-                            items.push(div().id(id).child(moji.glyph).cursor_pointer().on_click(
-                                move |_event, _window, _cx| {
-                                    println!("{moji:?}");
-                                },
-                            ))
-                        });
-
-                        items
+                                if let Some(moji) = maybe {
+                                    items.push(
+                                        div().id(idx).child(moji.glyph).cursor_pointer().on_click(
+                                            {
+                                                let moji = moji.clone();
+                                                move |_e, _w, _cx| println!("{moji:?}")
+                                            },
+                                        ),
+                                    );
+                                }
+                            }
+                            items
+                        }
                     }),
                 )
                 .text_size(rems(1.5)),
