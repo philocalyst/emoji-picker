@@ -1,16 +1,14 @@
 use emoji;
 use emoji::Emoji;
 use emoji_search;
-use std::ops::Range;
+use gpui_component::Root;
+use gpui_component::input::InputEvent;
 use std::sync::LazyLock;
 
 use gpui::{
-    App, Application, Bounds, ClipboardItem, Context, CursorStyle, ElementId, ElementInputHandler,
-    Entity, EntityInputHandler, FocusHandle, Focusable, GlobalElementId, KeyBinding, Keystroke,
-    LayoutId, MouseButton, MouseDownEvent, MouseMoveEvent, MouseUpEvent, PaintQuad, Pixels, Point,
-    ShapedLine, SharedString, Style, TextRun, UTF16Selection, UnderlineStyle, Window, WindowBounds,
-    WindowOptions, actions, black, div, fill, hsla, point, prelude::*, px, relative, rems, rgb,
-    rgba, size, white,
+    App, Application, Bounds, Context, Entity, FocusHandle, Focusable, KeyBinding, Keystroke,
+    MouseButton, Pixels, SharedString, Subscription, Window, WindowBounds, WindowOptions, actions,
+    black, div, prelude::*, px, rems, rgb, rgba, size, white,
 };
 use gpui_component::input::{InputState, TextInput};
 use gpui_component::theme::Theme;
@@ -79,11 +77,11 @@ impl Render for InputExample {
                     .justify_center()
                     .gap(rems(0.25))
                     .children(active_emoji.into_iter().enumerate().map(|(id, moji)| {
-                        div()
-                            .id(id)
-                            .child(moji.glyph)
-                            .cursor_pointer()
-                            .on_click(move |_event, _window, _cx| println!("{moji:?}"))
+                        div().id(id).child(moji.glyph).cursor_pointer().on_click(
+                            move |_event, _window, _cx| {
+                                println!("{moji:?}");
+                            },
+                        )
                     }))
                     .text_size(rems(1.5)),
             )
@@ -101,11 +99,30 @@ fn main() {
                     window_bounds: Some(WindowBounds::Windowed(bounds)),
                     ..Default::default()
                 },
+                |window, cx| {
+                    // Set the theme before creating Root
+                    cx.set_global(Theme::default());
+
+                    let input_state =
+                        cx.new(|cx| InputState::new(window, cx).placeholder("Type here..."));
+
+                    // Subscribe with correct closure signature
+                    cx.subscribe(
+                        &input_state,
+                        |_subscriber: Entity<InputState>, event: &InputEvent, cx: &mut App| {
+                            let text = _subscriber.read(cx);
+                            eprintln!("Input event: {:?}", text.text());
+                        },
+                    )
+                    .detach();
+
+                    let input_example = cx.new(|cx| InputExample {
                         emojis: vec![],
-                        text_input,
+                        input_state: input_state.clone(),
                         recent_keystrokes: vec![],
                         focus_handle: cx.focus_handle(),
-                    })
+                    });
+
                 },
             )
             .unwrap();
