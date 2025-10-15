@@ -100,55 +100,56 @@ impl Render for InputExample {
                         }
                     }),
                 )
+                .h_full()
                 .text_size(rems(1.5)),
             )
     }
 }
 
 fn main() {
-    Application::new().run(|cx: &mut App| {
+    let app = Application::new();
+
+    app.run(|cx: &mut App| {
         let bounds = Bounds::centered(None, size(px(300.0), px(300.0)), cx);
 
-        let window = cx
-            .open_window(
-                WindowOptions {
-                    titlebar: None,
-                    window_bounds: Some(WindowBounds::Windowed(bounds)),
-                    ..Default::default()
-                },
-                |window, cx| {
-                    // Set the theme before creating Root
-                    cx.set_global(Theme::default());
+        cx.open_window(
+            WindowOptions {
+                titlebar: None,
+                window_bounds: Some(WindowBounds::Windowed(bounds)),
+                ..Default::default()
+            },
+            |window, cx| {
+                // Set the theme before creating Root
+                cx.set_global(Theme::default());
+                gpui_component::init(cx);
 
-                    let input_state =
-                        cx.new(|cx| InputState::new(window, cx).placeholder("Type here..."));
+                let input_state =
+                    cx.new(|cx| InputState::new(window, cx).placeholder("Type here..."));
 
-                    window.focus(&input_state.read(cx).focus_handle(cx));
+                window.focus(&input_state.read(cx).focus_handle(cx));
 
-                    gpui_component::init(cx);
+                // Subscribe with correct closure signature
+                cx.subscribe(
+                    &input_state,
+                    |_subscriber: Entity<InputState>, event: &InputEvent, cx: &mut App| {
+                        let text = _subscriber.read(cx);
+                        eprintln!("Input event: {:?}", text.text());
+                    },
+                )
+                .detach();
 
-                    // Subscribe with correct closure signature
-                    cx.subscribe(
-                        &input_state,
-                        |_subscriber: Entity<InputState>, event: &InputEvent, cx: &mut App| {
-                            let text = _subscriber.read(cx);
-                            eprintln!("Input event: {:?}", text.text());
-                        },
-                    )
-                    .detach();
+                let input_example = cx.new(|cx| InputExample {
+                    emojis: vec![],
+                    input_state: input_state.clone(),
+                    recent_keystrokes: vec![],
+                    focus_handle: cx.focus_handle(),
+                });
 
-                    let input_example = cx.new(|cx| InputExample {
-                        emojis: vec![],
-                        input_state: input_state.clone(),
-                        recent_keystrokes: vec![],
-                        focus_handle: cx.focus_handle(),
-                    });
-
-                    // Wrap InputExample in Root - convert to AnyView
-                    cx.new(|cx| Root::new(input_example.into(), window, cx))
-                },
-            )
-            .unwrap();
+                // Wrap InputExample in Root - convert to AnyView
+                cx.new(|cx| Root::new(input_example.into(), window, cx))
+            },
+        )
+        .unwrap();
 
         cx.on_action(|_: &Quit, cx| cx.quit());
         cx.bind_keys([KeyBinding::new("cmd-q", Quit, None)]);
