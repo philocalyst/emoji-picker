@@ -36,9 +36,7 @@ static SEARCHER: LazyLock<emoji_search::EmojiSearcher> =
     LazyLock::new(|| emoji_search::EmojiSearcher::new(&*EMOJI_DATA, None));
 
 impl Render for InputExample {
-    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        cx.set_global(Theme::default());
-
+    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let active_text = self.input_state.read(cx).text().clone().to_string();
 
         let matcher: &'static emoji_search::EmojiSearcher = &*SEARCHER;
@@ -89,7 +87,7 @@ impl Render for InputExample {
                                     items.push(
                                         div().id(idx).child(moji.glyph).cursor_pointer().on_click(
                                             {
-                                                let moji = moji.clone();
+                                                let moji = moji.to_owned();
                                                 move |_e, _w, _cx| println!("{moji:?}")
                                             },
                                         ),
