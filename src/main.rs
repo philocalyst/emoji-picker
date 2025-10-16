@@ -123,6 +123,10 @@ fn main() {
                 cx.set_global(Theme::default());
                 gpui_component::init(cx);
 
+                // We want the emoji size to be a function of the text size, so as a user scales the window, more emojis will populate.
+                let rems = window.rem_size();
+                let emoji_size = size(rems, rems);
+
                 let input_state =
                     cx.new(|cx| InputState::new(window, cx).placeholder("Type here..."));
 
