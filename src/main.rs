@@ -1,14 +1,15 @@
 use emoji;
 use emoji::Emoji;
 use emoji_search;
-use gpui_component::Root;
 use gpui_component::input::InputEvent;
+use gpui_component::{Root, h_virtual_list};
+use std::rc::Rc;
 use std::sync::LazyLock;
 
 use gpui::{
     App, Application, Bounds, Context, Entity, FocusHandle, Focusable, KeyBinding, Keystroke,
-    Window, WindowBounds, WindowOptions, actions, black, div, prelude::*, px, rems, rgb, size,
-    uniform_list, white,
+    Pixels, Size, Window, WindowBounds, WindowOptions, actions, black, div, prelude::*, px, rems,
+    rgb, size, uniform_list, white,
 };
 use gpui_component::input::{InputState, TextInput};
 use gpui_component::theme::Theme;
