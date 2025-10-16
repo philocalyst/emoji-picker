@@ -78,32 +78,20 @@ impl Render for InputExample {
                     .justify_between(),
             )
             .child(
-                uniform_list(
-                    "entries",
-                    active_emoji.len(),
-                    cx.processor({
-                        let emojis = active_emoji.clone();
-                        move |_this, range, _window, _cx| {
-                            let mut items: Vec<_> = Vec::with_capacity(emojis.len());
-
-                            for idx in range {
-                                let maybe: Option<&&Emoji> = emojis.get(idx);
-
-                                if let Some(moji) = maybe {
-                                    items.push(
-                                        div().id(idx).child(moji.glyph).cursor_pointer().on_click(
-                                            {
-                                                let moji = moji.to_owned();
-                                                move |_e, _w, _cx| println!("{moji:?}")
-                                            },
-                                        ),
-                                    );
-                                }
-                            }
-                            items
-                        }
-                    }),
-                )
+                h_virtual_list(cx.entity().clone(), "emojis", emoji_sizes, {
+                    let emojis = active_emoji.clone();
+                    move |_this: &mut InputExample, range: std::ops::Range<usize>, _window, cx| {
+                        range
+                            .map(|idx| {
+                                let moji = &emojis[idx];
+                                div().id(idx).child(moji.glyph).cursor_pointer().on_click({
+                                    let moji = moji.clone();
+                                    move |_e, _w, _cx| println!("{moji:?}")
+                                })
+                            })
+                            .collect()
+                    }
+                })
                 .h_full()
                 .text_size(rems(1.5)),
             )
