@@ -50,6 +50,10 @@ impl Render for InputExample {
                 .unwrap(),
         };
 
+        // Create a list for the sizes of all the emoji, which is going to be largely boilerplate because they're monospaced
+        let emoji_sizes: Rc<Vec<Size<Pixels>>> =
+            Rc::new(active_emoji.iter().map(|_| self.emoji_size).collect());
+
         div()
             .child(
                 TextInput::new(&self.input_state)
