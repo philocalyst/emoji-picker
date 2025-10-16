@@ -19,6 +19,7 @@ actions!(text_input, [Quit,]);
 #[derive(Clone)]
 struct InputExample {
     emojis: Vec<Emoji>,
+    emoji_size: Size<Pixels>,
     input_state: Entity<InputState>,
     recent_keystrokes: Vec<Keystroke>,
     focus_handle: FocusHandle,
@@ -139,6 +140,7 @@ fn main() {
 
                 let input_example = cx.new(|cx| InputExample {
                     emojis: vec![],
+                    emoji_size,
                     input_state: input_state.clone(),
                     recent_keystrokes: vec![],
                     focus_handle: cx.focus_handle(),
