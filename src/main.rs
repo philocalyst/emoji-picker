@@ -50,7 +50,7 @@ impl Render for InputExample {
                 .unwrap(),
         };
 
-        let emoji_text_size = 1.5;
+        let emoji_text_size = 3.0;
         let default_emoji_size = w.rem_size() * emoji_text_size;
         let container_width = w.bounds().size.width.to_f64();
         let emojis_per_row = (container_width / default_emoji_size.to_f64()).floor() as usize;
@@ -64,11 +64,12 @@ impl Render for InputExample {
         // Create sizes for rows (not individual emojis)
         let row_sizes: Rc<Vec<Size<Pixels>>> = Rc::new(
             (0..row_count)
-                .map(|_| size(default_emoji_size, default_emoji_size))
+                .map(|_| size(container_width.into(), default_emoji_size))
                 .collect(),
         );
 
         div()
+            .justify_center()
             .child(
                 TextInput::new(&self.input_state)
                     .appearance(true)
@@ -98,7 +99,7 @@ impl Render for InputExample {
                         range
                             .map(|row_idx| {
                                 let start_idx = row_idx * emojis_per_row;
-                                let end_idx = (start_idx + emojis_per_row).min(emojis.len());
+                                let end_idx = (start_idx + emojis_per_row).min(emojis.len()) - 1;
                                 div().flex().flex_row().children((start_idx..end_idx).map(
                                     |emoji_idx| {
                                         let moji = &emojis[emoji_idx];
