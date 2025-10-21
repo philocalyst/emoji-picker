@@ -9,8 +9,8 @@ use std::sync::LazyLock;
 
 use gpui::{
     App, Application, Bounds, Context, Entity, FocusHandle, Focusable, KeyBinding, Keystroke,
-    Pixels, Size, Window, WindowBounds, WindowOptions, actions, black, div, prelude::*, px, rems,
-    rgb, size, uniform_list, white,
+    Pixels, Size, Window, WindowBounds, WindowOptions, actions, black, div, prelude::*, px, rgb,
+    size, white,
 };
 use gpui_component::input::{InputState, TextInput};
 use gpui_component::theme::Theme;
@@ -20,7 +20,6 @@ actions!(text_input, [Quit,]);
 #[derive(Clone)]
 struct InputExample {
     emojis: Vec<Emoji>,
-    emoji_size: Size<Pixels>,
     input_state: Entity<InputState>,
     recent_keystrokes: Vec<Keystroke>,
     focus_handle: FocusHandle,
@@ -47,20 +46,26 @@ impl Render for InputExample {
         let active_emoji: Vec<&Emoji> = match active_text.as_str() {
             "" => emoji::lookup_by_glyph::iter_emoji().collect(),
             _ => matcher
-                .search_best_matching_emojis(&active_text, Some(10))
+                .search_best_matching_emojis(&active_text, Some(1000))
                 .unwrap(),
         };
 
+        // We want the emoji size to be based off of the users default font size, for accessibility reasons, but also some degree larger because the focus here is on the emojis. We're approximating the emoji size also here..
+        let default_emoji_size = w.rem_size() * 1.58;
+
         let container_width = w.bounds().size.width.to_f64();
 
-        let emojis_per_row = (container_width / self.emoji_size.width.to_f64()) as usize;
+        let emojis_per_row = (container_width / default_emoji_size.to_f64()) as usize;
 
         // Calculate number of rows needed
         let row_count = (active_emoji.len() + emojis_per_row - 1) / emojis_per_row;
 
         // Create sizes for rows (not individual emojis)
-        let row_sizes: Rc<Vec<Size<Pixels>>> =
-            Rc::new((0..row_count).map(|_| self.emoji_size).collect());
+        let row_sizes: Rc<Vec<Size<Pixels>>> = Rc::new(
+            (0..row_count)
+                .map(|_| size(default_emoji_size, default_emoji_size))
+                .collect(),
+        );
 
         div()
             .child(
@@ -145,10 +150,6 @@ fn main() {
                 cx.set_global(Theme::default());
                 gpui_component::init(cx);
 
-                // We want the emoji size to be a function of the text size, so as a user scales the window, more emojis will populate.
-                let rems = window.rem_size() * 1.58;
-                let emoji_size = size(rems, rems);
-
                 let input_state =
                     cx.new(|cx| InputState::new(window, cx).placeholder("Type here..."));
 
@@ -166,7 +167,6 @@ fn main() {
 
                 let input_example = cx.new(|cx| InputExample {
                     emojis: vec![],
-                    emoji_size,
                     scroll_handle: VirtualListScrollHandle::new(),
                     scroll_state: ScrollbarState::default(),
                     input_state: input_state.clone(),
