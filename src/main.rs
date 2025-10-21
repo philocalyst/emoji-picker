@@ -113,8 +113,17 @@ impl Render for InputExample {
                             .collect()
                     }
                 })
-                .h_full()
-                .text_size(rems(1.5)),
+                .track_scroll(&self.scroll_handle)
+                .h_full(),
+            )
+            .child(
+                div()
+                    .absolute()
+                    .top_0()
+                    .left_0()
+                    .right_0()
+                    .bottom_0()
+                    .child(Scrollbar::vertical(&self.scroll_state, &self.scroll_handle)),
             )
     }
 }
