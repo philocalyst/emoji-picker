@@ -2,7 +2,7 @@ use emoji;
 use emoji::Emoji;
 use emoji_search;
 use gpui_component::input::InputEvent;
-use gpui_component::scroll::ScrollbarState;
+use gpui_component::scroll::{Scrollbar, ScrollbarState};
 use gpui_component::{Root, VirtualListScrollHandle, v_virtual_list};
 use std::rc::Rc;
 use std::sync::LazyLock;
@@ -92,7 +92,7 @@ impl Render for InputExample {
                         range
                             .map(|row_idx| {
                                 let start_idx = row_idx * emojis_per_row;
-                                let end_idx = (start_idx + emojis_per_row).min(emojis.len());
+                                let end_idx = (start_idx + emojis_per_row).min(emojis.len()) - 1;
 
                                 div()
                                     .flex()
@@ -146,7 +146,7 @@ fn main() {
                 gpui_component::init(cx);
 
                 // We want the emoji size to be a function of the text size, so as a user scales the window, more emojis will populate.
-                let rems = window.rem_size() * 2;
+                let rems = window.rem_size() * 1.58;
                 let emoji_size = size(rems, rems);
 
                 let input_state =
