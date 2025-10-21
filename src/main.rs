@@ -9,8 +9,8 @@ use std::sync::LazyLock;
 
 use gpui::{
     App, Application, Bounds, Context, Entity, FocusHandle, Focusable, KeyBinding, Keystroke,
-    Pixels, Size, Window, WindowBounds, WindowOptions, actions, black, div, prelude::*, px, rgb,
-    size, white,
+    Pixels, Size, Window, WindowBounds, WindowOptions, actions, black, div, prelude::*, px, rems,
+    rgb, size, white,
 };
 use gpui_component::input::{InputState, TextInput};
 use gpui_component::theme::Theme;
@@ -50,12 +50,13 @@ impl Render for InputExample {
                 .unwrap(),
         };
 
-        // We want the emoji size to be based off of the users default font size, for accessibility reasons, but also some degree larger because the focus here is on the emojis. We're approximating the emoji size also here..
-        let default_emoji_size = w.rem_size() * 1.58;
-
+        let emoji_text_size = 1.5;
+        let default_emoji_size = w.rem_size() * emoji_text_size;
         let container_width = w.bounds().size.width.to_f64();
+        let emojis_per_row = (container_width / default_emoji_size.to_f64()).floor() as usize;
 
-        let emojis_per_row = (container_width / default_emoji_size.to_f64()) as usize;
+        // Prevent division by zero
+        let emojis_per_row = emojis_per_row.max(1);
 
         // Calculate number of rows needed
         let row_count = (active_emoji.len() + emojis_per_row - 1) / emojis_per_row;
@@ -97,13 +98,9 @@ impl Render for InputExample {
                         range
                             .map(|row_idx| {
                                 let start_idx = row_idx * emojis_per_row;
-                                let end_idx = (start_idx + emojis_per_row).min(emojis.len()) - 1;
-
-                                div()
-                                    .flex()
-                                    .flex_row()
-                                    .gap_2()
-                                    .children((start_idx..end_idx).map(|emoji_idx| {
+                                let end_idx = (start_idx + emojis_per_row).min(emojis.len());
+                                div().flex().flex_row().children((start_idx..end_idx).map(
+                                    |emoji_idx| {
                                         let moji = &emojis[emoji_idx];
                                         div()
                                             .id(emoji_idx)
@@ -113,11 +110,13 @@ impl Render for InputExample {
                                                 let moji = moji.to_owned();
                                                 move |_e, _w, _cx| println!("{moji:?}")
                                             })
-                                    }))
+                                    },
+                                ))
                             })
                             .collect()
                     }
                 })
+                .text_size(rems(emoji_text_size))
                 .track_scroll(&self.scroll_handle)
                 .h_full(),
             )
