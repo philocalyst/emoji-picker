@@ -2,7 +2,8 @@ use emoji;
 use emoji::Emoji;
 use emoji_search;
 use gpui_component::input::InputEvent;
-use gpui_component::{Root, v_virtual_list};
+use gpui_component::scroll::ScrollbarState;
+use gpui_component::{Root, VirtualListScrollHandle, v_virtual_list};
 use std::rc::Rc;
 use std::sync::LazyLock;
 
@@ -23,6 +24,8 @@ struct InputExample {
     input_state: Entity<InputState>,
     recent_keystrokes: Vec<Keystroke>,
     focus_handle: FocusHandle,
+    scroll_handle: VirtualListScrollHandle,
+    scroll_state: ScrollbarState,
 }
 
 impl Focusable for InputExample {
@@ -155,6 +158,8 @@ fn main() {
                 let input_example = cx.new(|cx| InputExample {
                     emojis: vec![],
                     emoji_size,
+                    scroll_handle: VirtualListScrollHandle::new(),
+                    scroll_state: ScrollbarState::default(),
                     input_state: input_state.clone(),
                     recent_keystrokes: vec![],
                     focus_handle: cx.focus_handle(),
