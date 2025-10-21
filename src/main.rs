@@ -2,7 +2,7 @@ use emoji;
 use emoji::Emoji;
 use emoji_search;
 use gpui_component::input::InputEvent;
-use gpui_component::{Root, h_virtual_list};
+use gpui_component::{Root, v_virtual_list};
 use std::rc::Rc;
 use std::sync::LazyLock;
 
@@ -38,11 +38,9 @@ static SEARCHER: LazyLock<emoji_search::EmojiSearcher> =
     LazyLock::new(|| emoji_search::EmojiSearcher::new(&*EMOJI_DATA, None));
 
 impl Render for InputExample {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, w: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let active_text = self.input_state.read(cx).text().clone().to_string();
-
         let matcher: &'static emoji_search::EmojiSearcher = &*SEARCHER;
-
         let active_emoji: Vec<&Emoji> = match active_text.as_str() {
             "" => emoji::lookup_by_glyph::iter_emoji().collect(),
             _ => matcher
@@ -50,9 +48,16 @@ impl Render for InputExample {
                 .unwrap(),
         };
 
-        // Create a list for the sizes of all the emoji, which is going to be largely boilerplate because they're monospaced
-        let emoji_sizes: Rc<Vec<Size<Pixels>>> =
-            Rc::new(active_emoji.iter().map(|_| self.emoji_size).collect());
+        let container_width = w.bounds().size.width.to_f64();
+
+        let emojis_per_row = (container_width / self.emoji_size.width.to_f64()) as usize;
+
+        // Calculate number of rows needed
+        let row_count = (active_emoji.len() + emojis_per_row - 1) / emojis_per_row;
+
+        // Create sizes for rows (not individual emojis)
+        let row_sizes: Rc<Vec<Size<Pixels>>> =
+            Rc::new((0..row_count).map(|_| self.emoji_size).collect());
 
         div()
             .child(
@@ -78,22 +83,33 @@ impl Render for InputExample {
                     .justify_between(),
             )
             .child(
-                h_virtual_list(cx.entity().clone(), "emojis", emoji_sizes, {
+                v_virtual_list(cx.entity().clone(), "emojis", row_sizes, {
                     let emojis = active_emoji.clone();
                     move |_this: &mut InputExample, range: std::ops::Range<usize>, _window, cx| {
                         range
-                            .map(|idx| {
-                                let moji = &emojis[idx];
-                                div().id(idx).child(moji.glyph).cursor_pointer().on_click({
-                                    let moji = moji.to_owned();
-                                    move |_e, _w, _cx| println!("{moji:?}")
-                                })
+                            .map(|row_idx| {
+                                let start_idx = row_idx * emojis_per_row;
+                                let end_idx = (start_idx + emojis_per_row).min(emojis.len());
+
+                                div()
+                                    .flex()
+                                    .flex_row()
+                                    .gap_2()
+                                    .children((start_idx..end_idx).map(|emoji_idx| {
+                                        let moji = &emojis[emoji_idx];
+                                        div()
+                                            .id(emoji_idx)
+                                            .child(moji.glyph)
+                                            .cursor_pointer()
+                                            .on_click({
+                                                let moji = moji.to_owned();
+                                                move |_e, _w, _cx| println!("{moji:?}")
+                                            })
+                                    }))
                             })
                             .collect()
                     }
                 })
-                .flex()
-                .flex_wrap()
                 .h_full()
                 .text_size(rems(1.5)),
             )
