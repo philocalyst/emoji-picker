@@ -85,13 +85,15 @@ impl Render for InputExample {
                             .map(|idx| {
                                 let moji = &emojis[idx];
                                 div().id(idx).child(moji.glyph).cursor_pointer().on_click({
-                                    let moji = moji.clone();
+                                    let moji = moji.to_owned();
                                     move |_e, _w, _cx| println!("{moji:?}")
                                 })
                             })
                             .collect()
                     }
                 })
+                .flex()
+                .flex_wrap()
                 .h_full()
                 .text_size(rems(1.5)),
             )
@@ -116,7 +118,7 @@ fn main() {
                 gpui_component::init(cx);
 
                 // We want the emoji size to be a function of the text size, so as a user scales the window, more emojis will populate.
-                let rems = window.rem_size();
+                let rems = window.rem_size() * 2;
                 let emoji_size = size(rems, rems);
 
                 let input_state =
