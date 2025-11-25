@@ -20,6 +20,7 @@ use crate::utils::generate_skin_tone_variants;
 
 mod picker;
 mod utils;
+mod variant_overlay;
 
 actions!(text_input, [Quit,]);
 
@@ -50,34 +51,6 @@ fn render_emoji_row<'a>(start_idx: usize, end_idx: usize, emojis: &'a [&'a Emoji
             let moji = emojis[emoji_idx];
             render_emoji_button(emoji_idx, moji)
         }))
-}
-
-/// Renders the overlay showing skin tone variants for a selected emoji
-fn render_variant_overlay(emoji: &Emoji) -> impl IntoElement {
-    div()
-        .absolute()
-        .top_0()
-        .left_0()
-        .w_full()
-        .h_full()
-        .flex()
-        .items_center()
-        .justify_center()
-        .child(
-            div()
-                .p_4()
-                .rounded_md()
-                .shadow_lg()
-                .flex()
-                .flex_row()
-                .bg(white())
-                .gap_2()
-                .children(
-                    generate_skin_tone_variants(emoji.glyph)
-                        .into_iter()
-                        .map(|variant| div().child(variant)),
-                ),
-        )
 }
 
 /// Renders the emoji grid with virtual scrolling
