@@ -97,6 +97,7 @@ impl Render for InputExample {
             .child(
                 div()
                     .relative()
+                    .size_full()
                     .child(
                         v_virtual_list(cx.entity().clone(), "emojis", row_sizes, {
                             let emojis = active_emoji.clone();
@@ -112,7 +113,7 @@ impl Render for InputExample {
                                         div().flex().flex_row().children((start_idx..end_idx).map(
                                             |emoji_idx| {
                                                 let moji = &emojis[emoji_idx];
-                                                container.selected_emoji = Some(emoji_idx);
+                                                // container.selected_emoji = Some(emoji_idx);
                                                 div()
                                                     .id(emoji_idx)
                                                     .child(moji.glyph)
