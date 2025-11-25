@@ -8,7 +8,7 @@ use std::rc::Rc;
 use std::sync::LazyLock;
 
 use gpui::{
-    App, Application, Bounds, Context, Entity, FocusHandle, Focusable, KeyBinding, Keystroke,
+    App, Application, Bounds, Context, Div, Entity, FocusHandle, Focusable, KeyBinding, Keystroke,
     Pixels, Size, Window, WindowBounds, WindowOptions, actions, black, div, prelude::*, px, rems,
     rgb, size, white,
 };
@@ -41,47 +41,171 @@ static EMOJI_DATA: LazyLock<emoji_search::types::EmojiData> =
 static SEARCHER: LazyLock<emoji_search::EmojiSearcher> =
     LazyLock::new(|| emoji_search::EmojiSearcher::new(&*EMOJI_DATA, None));
 
+/// Searches for emojis based on the provided text query
+fn search_emojis(text: &str) -> Vec<&'static Emoji> {
+    match text {
+        "" => emoji::lookup_by_glyph::iter_emoji()
+            .filter(|emoji| !emoji.name.contains(":"))
+            .collect(),
+        _ => {
+            let matcher: &'static emoji_search::EmojiSearcher = &*SEARCHER;
+            matcher
+                .search_best_matching_emojis(text, Some(1000))
+                .unwrap()
+        }
+    }
+}
+
+/// Calculates the number of emojis that fit per row based on container width
+fn calculate_emojis_per_row(container_width: f64, emoji_size: Pixels) -> usize {
+    let emojis_per_row = (container_width / emoji_size.to_f64()).floor() as usize;
+    emojis_per_row.max(1)
+}
+
+/// Generates row sizes for the virtual list based on emoji count and layout
+fn generate_row_sizes(
+    emoji_count: usize,
+    emojis_per_row: usize,
+    container_width: f64,
+    emoji_size: Pixels,
+) -> Rc<Vec<Size<Pixels>>> {
+    let row_count = (emoji_count + emojis_per_row - 1) / emojis_per_row;
+    Rc::new(
+        (0..row_count)
+            .map(|_| size(container_width.into(), emoji_size))
+            .collect(),
+    )
+}
+
+/// Renders a single emoji button
+fn render_emoji_button(emoji_idx: usize, emoji: &Emoji) -> impl IntoElement {
+    div()
+        .id(emoji_idx)
+        .child(emoji.glyph)
+        .cursor_pointer()
+        .on_click({
+            let moji = emoji.to_owned();
+            move |_e, _w, _cx| println!("{moji:?}")
+        })
+}
+
+/// Renders a row of emojis for the virtual list
+fn render_emoji_row<'a>(start_idx: usize, end_idx: usize, emojis: &'a [&'a Emoji]) -> Div {
+    div()
+        .flex()
+        .flex_row()
+        .children((start_idx..end_idx).map(|emoji_idx| {
+            let moji = emojis[emoji_idx];
+            render_emoji_button(emoji_idx, moji)
+        }))
+}
+
+/// Generates skin tone variant strings for a given emoji
+fn generate_skin_tone_variants(emoji_glyph: &str) -> Vec<String> {
+    let skin_tone_modifiers = [
+        "\u{1F3FB}", // Light Skin Tone
+        "\u{1F3FC}", // Medium-Light Skin Tone
+        "\u{1F3FD}", // Medium Skin Tone
+        "\u{1F3FE}", // Medium-Dark Skin Tone
+        "\u{1F3FF}", // Dark Skin Tone
+    ];
+
+    skin_tone_modifiers
+        .iter()
+        .map(|modifier| {
+            let mut variant_glyph = String::with_capacity(emoji_glyph.len() + modifier.len());
+            variant_glyph.push_str(emoji_glyph);
+            variant_glyph.push_str(modifier);
+            variant_glyph
+        })
+        .collect()
+}
+
+/// Renders the overlay showing skin tone variants for a selected emoji
+fn render_variant_overlay(emoji: &Emoji) -> impl IntoElement {
+    div()
+        .absolute()
+        .top_0()
+        .left_0()
+        .w_full()
+        .h_full()
+        .flex()
+        .items_center()
+        .justify_center()
+        .child(
+            div()
+                .p_4()
+                .rounded_md()
+                .shadow_lg()
+                .flex()
+                .flex_row()
+                .bg(white())
+                .gap_2()
+                .children(
+                    generate_skin_tone_variants(emoji.glyph)
+                        .into_iter()
+                        .map(|variant| div().child(variant)),
+                ),
+        )
+}
+
+/// Renders the text input field
+fn render_input(input_state: &Entity<InputState>) -> impl IntoElement {
+    TextInput::new(input_state)
+        .appearance(true)
+        .cleanable()
+        .bg(rgb(0xeeeeee))
+        .w_full()
+        .p(px(4.))
+}
+
+/// Renders the emoji grid with virtual scrolling
+fn render_emoji_grid(
+    entity: Entity<InputExample>,
+    emojis: Vec<&'static Emoji>,
+    emojis_per_row: usize,
+    row_sizes: Rc<Vec<Size<Pixels>>>,
+    emoji_text_size: f32,
+    scroll_handle: &VirtualListScrollHandle,
+) -> impl IntoElement {
+    v_virtual_list(
+        entity,
+        "emojis",
+        row_sizes,
+        move |_container: &mut InputExample, range: std::ops::Range<usize>, _window, _cx| {
+            range
+                .map(|row_idx| {
+                    let start_idx = row_idx * emojis_per_row;
+                    let end_idx = (start_idx + emojis_per_row).min(emojis.len()) - 1;
+                    render_emoji_row(start_idx, end_idx, &emojis)
+                })
+                .collect()
+        },
+    )
+    .text_size(rems(emoji_text_size))
+    .track_scroll(scroll_handle)
+    .h_full()
+}
+
 impl Render for InputExample {
     fn render(&mut self, w: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let active_text = self.input_state.read(cx).text().clone().to_string();
-        let matcher: &'static emoji_search::EmojiSearcher = &*SEARCHER;
-        let active_emoji: Vec<&Emoji> = match active_text.as_str() {
-            "" => emoji::lookup_by_glyph::iter_emoji()
-                .filter(|emoji| !emoji.name.contains(":"))
-                .collect(),
-            _ => matcher
-                .search_best_matching_emojis(&active_text, Some(1000))
-                .unwrap(),
-        };
+        let active_emoji = search_emojis(&active_text);
 
         let emoji_text_size = 1.5;
         let default_emoji_size = w.rem_size() * emoji_text_size;
         let container_width = w.bounds().size.width.to_f64();
-        let emojis_per_row = (container_width / default_emoji_size.to_f64()).floor() as usize;
-
-        // Prevent division by zero
-        let emojis_per_row = emojis_per_row.max(1);
-
-        // Calculate number of rows needed
-        let row_count = (active_emoji.len() + emojis_per_row - 1) / emojis_per_row;
-
-        // Create sizes for rows (not individual emojis)
-        let row_sizes: Rc<Vec<Size<Pixels>>> = Rc::new(
-            (0..row_count)
-                .map(|_| size(container_width.into(), default_emoji_size))
-                .collect(),
+        let emojis_per_row = calculate_emojis_per_row(container_width, default_emoji_size);
+        let row_sizes = generate_row_sizes(
+            active_emoji.len(),
+            emojis_per_row,
+            container_width,
+            default_emoji_size,
         );
 
         div()
             .justify_center()
-            .child(
-                TextInput::new(&self.input_state)
-                    .appearance(true)
-                    .cleanable()
-                    .bg(rgb(0xeeeeee))
-                    .w_full()
-                    .p(px(4.)),
-            )
+            .child(render_input(&self.input_state))
             .bg(rgb(0xaaaaaa))
             .track_focus(&self.focus_handle(cx))
             .flex()
@@ -100,91 +224,17 @@ impl Render for InputExample {
                 div()
                     .relative()
                     .size_full()
-                    .child(
-                        v_virtual_list(cx.entity().clone(), "emojis", row_sizes, {
-                            let emojis = active_emoji.clone();
-                            move |container: &mut InputExample,
-                                  range: std::ops::Range<usize>,
-                                  _window,
-                                  cx| {
-                                range
-                                    .map(|row_idx| {
-                                        let start_idx = row_idx * emojis_per_row;
-                                        let end_idx =
-                                            (start_idx + emojis_per_row).min(emojis.len()) - 1;
-                                        div().flex().flex_row().children((start_idx..end_idx).map(
-                                            |emoji_idx| {
-                                                let moji = &emojis[emoji_idx];
-                                                // container.selected_emoji = Some(emoji_idx);
-                                                div()
-                                                    .id(emoji_idx)
-                                                    .child(moji.glyph)
-                                                    .cursor_pointer()
-                                                    .on_click({
-                                                        let moji = moji.to_owned();
-                                                        move |_e, _w, _cx| println!("{moji:?}")
-                                                    })
-                                            },
-                                        ))
-                                    })
-                                    .collect()
-                            }
-                        })
-                        .text_size(rems(emoji_text_size))
-                        .track_scroll(&self.scroll_handle)
-                        .h_full(),
-                    )
-                    // Overlay for variants
+                    .child(render_emoji_grid(
+                        cx.entity().clone(),
+                        active_emoji.clone(),
+                        emojis_per_row,
+                        row_sizes,
+                        emoji_text_size,
+                        &self.scroll_handle,
+                    ))
                     .when_some(self.selected_emoji, |parent, emoji_idx| {
                         let emoji = &active_emoji[emoji_idx];
-                        parent.child(
-                            div()
-                                .absolute() // Position absolutely
-                                .top_0()
-                                .left_0()
-                                .w_full()
-                                .h_full()
-                                .flex()
-                                .items_center()
-                                .justify_center()
-                                .child(
-                                    div()
-                                        .p_4()
-                                        .rounded_md()
-                                        .shadow_lg()
-                                        .flex()
-                                        .flex_row()
-                                        .bg(white())
-                                        .gap_2()
-                                        .children({
-                                            let skin_tone_modifiers = [
-                                                "\u{1F3FB}", // Light Skin Tone
-                                                "\u{1F3FC}", // Medium-Light Skin Tone
-                                                "\u{1F3FD}", // Medium Skin Tone
-                                                "\u{1F3FE}", // Medium-Dark Skin Tone
-                                                "\u{1F3FF}", // Dark Skin Tone
-                                            ];
-
-                                            let mut variants =
-                                                Vec::with_capacity(skin_tone_modifiers.len());
-
-                                            for modifier in skin_tone_modifiers.iter() {
-                                                let mut variant_glyph = String::with_capacity(
-                                                    emoji.glyph.len() + modifier.len(),
-                                                );
-                                                variant_glyph.push_str(emoji.glyph);
-                                                variant_glyph.push_str(modifier);
-                                                variants.push(variant_glyph);
-                                            }
-
-                                            let result = variants
-                                                .into_iter()
-                                                .map(|variant| div().child(variant));
-
-                                            result
-                                        }),
-                                ),
-                        )
+                        parent.child(render_variant_overlay(emoji))
                     }),
             )
             .child(
@@ -224,7 +274,7 @@ fn main() {
                 // Subscribe with correct closure signature
                 cx.subscribe(
                     &input_state,
-                    |_subscriber: Entity<InputState>, event: &InputEvent, cx: &mut App| {
+                    |_subscriber: Entity<InputState>, _event: &InputEvent, cx: &mut App| {
                         let text = _subscriber.read(cx);
                         eprintln!("Input event: {:?}", text.text());
                     },
@@ -238,7 +288,7 @@ fn main() {
                     input_state: input_state.clone(),
                     recent_keystrokes: vec![],
                     focus_handle: cx.focus_handle(),
-                    selected_emoji: Some(10),
+                    selected_emoji: Some(5),
                 });
 
                 // Wrap InputExample in Root - convert to AnyView
