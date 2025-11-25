@@ -15,25 +15,11 @@ use gpui::{
 use gpui_component::input::{InputState, TextInput};
 use gpui_component::theme::Theme;
 
+use crate::picker::Picker;
+
+mod picker;
+
 actions!(text_input, [Quit,]);
-
-#[derive(Clone)]
-struct InputExample {
-    emojis: Vec<Emoji>,
-    input_state: Entity<InputState>,
-    recent_keystrokes: Vec<Keystroke>,
-    focus_handle: FocusHandle,
-    /// The position of the selected emoji, if there is one
-    selected_emoji: Option<usize>,
-    scroll_handle: VirtualListScrollHandle,
-    scroll_state: ScrollbarState,
-}
-
-impl Focusable for InputExample {
-    fn focus_handle(&self, _: &App) -> FocusHandle {
-        self.focus_handle.clone()
-    }
-}
 
 static EMOJI_DATA: LazyLock<emoji_search::types::EmojiData> =
     std::sync::LazyLock::new(|| emoji_search::types::load_emoji_data().unwrap());
@@ -161,7 +147,7 @@ fn render_input(input_state: &Entity<InputState>) -> impl IntoElement {
 
 /// Renders the emoji grid with virtual scrolling
 fn render_emoji_grid(
-    entity: Entity<InputExample>,
+    entity: Entity<Picker>,
     emojis: Vec<&'static Emoji>,
     emojis_per_row: usize,
     row_sizes: Rc<Vec<Size<Pixels>>>,
@@ -172,7 +158,7 @@ fn render_emoji_grid(
         entity,
         "emojis",
         row_sizes,
-        move |_container: &mut InputExample, range: std::ops::Range<usize>, _window, _cx| {
+        move |_container: &mut Picker, range: std::ops::Range<usize>, _window, _cx| {
             range
                 .map(|row_idx| {
                     let start_idx = row_idx * emojis_per_row;
@@ -185,68 +171,6 @@ fn render_emoji_grid(
     .text_size(rems(emoji_text_size))
     .track_scroll(scroll_handle)
     .h_full()
-}
-
-impl Render for InputExample {
-    fn render(&mut self, w: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let active_text = self.input_state.read(cx).text().clone().to_string();
-        let active_emoji = search_emojis(&active_text);
-
-        let emoji_text_size = 1.5;
-        let default_emoji_size = w.rem_size() * emoji_text_size;
-        let container_width = w.bounds().size.width.to_f64();
-        let emojis_per_row = calculate_emojis_per_row(container_width, default_emoji_size);
-        let row_sizes = generate_row_sizes(
-            active_emoji.len(),
-            emojis_per_row,
-            container_width,
-            default_emoji_size,
-        );
-
-        div()
-            .justify_center()
-            .child(render_input(&self.input_state))
-            .bg(rgb(0xaaaaaa))
-            .track_focus(&self.focus_handle(cx))
-            .flex()
-            .flex_col()
-            .size_full()
-            .child(
-                div()
-                    .bg(white())
-                    .border_b_1()
-                    .border_color(black())
-                    .flex()
-                    .flex_row()
-                    .justify_between(),
-            )
-            .child(
-                div()
-                    .relative()
-                    .size_full()
-                    .child(render_emoji_grid(
-                        cx.entity().clone(),
-                        active_emoji.clone(),
-                        emojis_per_row,
-                        row_sizes,
-                        emoji_text_size,
-                        &self.scroll_handle,
-                    ))
-                    .when_some(self.selected_emoji, |parent, emoji_idx| {
-                        let emoji = &active_emoji[emoji_idx];
-                        parent.child(render_variant_overlay(emoji))
-                    }),
-            )
-            .child(
-                div()
-                    .absolute()
-                    .top_0()
-                    .left_0()
-                    .right_0()
-                    .bottom_0()
-                    .child(Scrollbar::vertical(&self.scroll_state, &self.scroll_handle)),
-            )
-    }
 }
 
 fn main() {
@@ -281,7 +205,7 @@ fn main() {
                 )
                 .detach();
 
-                let input_example = cx.new(|cx| InputExample {
+                let input_example = cx.new(|cx| Picker {
                     emojis: vec![],
                     scroll_handle: VirtualListScrollHandle::new(),
                     scroll_state: ScrollbarState::default(),
