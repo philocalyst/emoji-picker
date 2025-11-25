@@ -152,7 +152,13 @@ impl Render for InputExample {
                                         .shadow_lg()
                                         .flex()
                                         .flex_row()
-                                        .gap_2(),
+                                        .gap_2()
+                                        .children(
+                                            emoji
+                                                .variants
+                                                .iter()
+                                                .map(|variant| div().child(variant.glyph)),
+                                        ),
                                 ),
                         )
                     }),
