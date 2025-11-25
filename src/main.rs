@@ -23,6 +23,8 @@ struct InputExample {
     input_state: Entity<InputState>,
     recent_keystrokes: Vec<Keystroke>,
     focus_handle: FocusHandle,
+    /// The position of the selected emoji, if there is one
+    selected_emoji: Option<usize>,
     scroll_handle: VirtualListScrollHandle,
     scroll_state: ScrollbarState,
 }
@@ -50,7 +52,7 @@ impl Render for InputExample {
                 .unwrap(),
         };
 
-        let emoji_text_size = 3.0;
+        let emoji_text_size = 1.5;
         let default_emoji_size = w.rem_size() * emoji_text_size;
         let container_width = w.bounds().size.width.to_f64();
         let emojis_per_row = (container_width / default_emoji_size.to_f64()).floor() as usize;
@@ -95,7 +97,10 @@ impl Render for InputExample {
             .child(
                 v_virtual_list(cx.entity().clone(), "emojis", row_sizes, {
                     let emojis = active_emoji.clone();
-                    move |_this: &mut InputExample, range: std::ops::Range<usize>, _window, cx| {
+                    move |container: &mut InputExample,
+                          range: std::ops::Range<usize>,
+                          _window,
+                          cx| {
                         range
                             .map(|row_idx| {
                                 let start_idx = row_idx * emojis_per_row;
@@ -103,10 +108,12 @@ impl Render for InputExample {
                                 div().flex().flex_row().children((start_idx..end_idx).map(
                                     |emoji_idx| {
                                         let moji = &emojis[emoji_idx];
+                                        container.selected_emoji = Some(emoji_idx);
                                         div()
                                             .id(emoji_idx)
                                             .child(moji.glyph)
                                             .cursor_pointer()
+                                            .relative()
                                             .on_click({
                                                 let moji = moji.to_owned();
                                                 move |_e, _w, _cx| println!("{moji:?}")
@@ -172,6 +179,7 @@ fn main() {
                     input_state: input_state.clone(),
                     recent_keystrokes: vec![],
                     focus_handle: cx.focus_handle(),
+                    selected_emoji: None,
                 });
 
                 // Wrap InputExample in Root - convert to AnyView
