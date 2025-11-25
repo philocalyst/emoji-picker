@@ -73,6 +73,7 @@ impl Render for Picker {
                 cx.entity().clone(),
                 active_emoji.clone(),
                 emojis_per_row,
+                self.selected_emoji,
                 row_sizes,
                 emoji_text_size,
                 &self.scroll_handle,
