@@ -46,7 +46,9 @@ impl Render for InputExample {
         let active_text = self.input_state.read(cx).text().clone().to_string();
         let matcher: &'static emoji_search::EmojiSearcher = &*SEARCHER;
         let active_emoji: Vec<&Emoji> = match active_text.as_str() {
-            "" => emoji::lookup_by_glyph::iter_emoji().collect(),
+            "" => emoji::lookup_by_glyph::iter_emoji()
+                .filter(|emoji| !emoji.name.contains(":"))
+                .collect(),
             _ => matcher
                 .search_best_matching_emojis(&active_text, Some(1000))
                 .unwrap(),
@@ -152,13 +154,35 @@ impl Render for InputExample {
                                         .shadow_lg()
                                         .flex()
                                         .flex_row()
+                                        .bg(white())
                                         .gap_2()
-                                        .children(
-                                            emoji
-                                                .variants
-                                                .iter()
-                                                .map(|variant| div().child(variant.glyph)),
-                                        ),
+                                        .children({
+                                            let skin_tone_modifiers = [
+                                                "\u{1F3FB}", // Light Skin Tone
+                                                "\u{1F3FC}", // Medium-Light Skin Tone
+                                                "\u{1F3FD}", // Medium Skin Tone
+                                                "\u{1F3FE}", // Medium-Dark Skin Tone
+                                                "\u{1F3FF}", // Dark Skin Tone
+                                            ];
+
+                                            let mut variants =
+                                                Vec::with_capacity(skin_tone_modifiers.len());
+
+                                            for modifier in skin_tone_modifiers.iter() {
+                                                let mut variant_glyph = String::with_capacity(
+                                                    emoji.glyph.len() + modifier.len(),
+                                                );
+                                                variant_glyph.push_str(emoji.glyph);
+                                                variant_glyph.push_str(modifier);
+                                                variants.push(variant_glyph);
+                                            }
+
+                                            let result = variants
+                                                .into_iter()
+                                                .map(|variant| div().child(variant));
+
+                                            result
+                                        }),
                                 ),
                         )
                     }),
@@ -214,7 +238,7 @@ fn main() {
                     input_state: input_state.clone(),
                     recent_keystrokes: vec![],
                     focus_handle: cx.focus_handle(),
-                    selected_emoji: None,
+                    selected_emoji: Some(10),
                 });
 
                 // Wrap InputExample in Root - convert to AnyView
