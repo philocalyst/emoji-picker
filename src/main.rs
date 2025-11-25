@@ -95,38 +95,40 @@ impl Render for InputExample {
                     .justify_between(),
             )
             .child(
-                v_virtual_list(cx.entity().clone(), "emojis", row_sizes, {
-                    let emojis = active_emoji.clone();
-                    move |container: &mut InputExample,
-                          range: std::ops::Range<usize>,
-                          _window,
-                          cx| {
-                        range
-                            .map(|row_idx| {
-                                let start_idx = row_idx * emojis_per_row;
-                                let end_idx = (start_idx + emojis_per_row).min(emojis.len()) - 1;
-                                div().flex().flex_row().children((start_idx..end_idx).map(
-                                    |emoji_idx| {
-                                        let moji = &emojis[emoji_idx];
-                                        container.selected_emoji = Some(emoji_idx);
-                                        div()
-                                            .id(emoji_idx)
-                                            .child(moji.glyph)
-                                            .cursor_pointer()
-                                            .relative()
-                                            .on_click({
-                                                let moji = moji.to_owned();
-                                                move |_e, _w, _cx| println!("{moji:?}")
-                                            })
-                                    },
-                                ))
-                            })
-                            .collect()
-                    }
-                })
-                .text_size(rems(emoji_text_size))
-                .track_scroll(&self.scroll_handle)
-                .h_full(),
+                div().child(
+                    v_virtual_list(cx.entity().clone(), "emojis", row_sizes, {
+                        let emojis = active_emoji.clone();
+                        move |container: &mut InputExample,
+                              range: std::ops::Range<usize>,
+                              _window,
+                              cx| {
+                            range
+                                .map(|row_idx| {
+                                    let start_idx = row_idx * emojis_per_row;
+                                    let end_idx =
+                                        (start_idx + emojis_per_row).min(emojis.len()) - 1;
+                                    div().flex().flex_row().children((start_idx..end_idx).map(
+                                        |emoji_idx| {
+                                            let moji = &emojis[emoji_idx];
+                                            container.selected_emoji = Some(emoji_idx);
+                                            div()
+                                                .id(emoji_idx)
+                                                .child(moji.glyph)
+                                                .cursor_pointer()
+                                                .on_click({
+                                                    let moji = moji.to_owned();
+                                                    move |_e, _w, _cx| println!("{moji:?}")
+                                                })
+                                        },
+                                    ))
+                                })
+                                .collect()
+                        }
+                    })
+                    .text_size(rems(emoji_text_size))
+                    .track_scroll(&self.scroll_handle)
+                    .h_full(),
+                ),
             )
             .child(
                 div()
