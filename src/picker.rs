@@ -15,7 +15,6 @@ use gpui::{
 use gpui_component::input::{InputState, TextInput};
 use gpui_component::theme::Theme;
 
-use crate::emojir::render_grid;
 use crate::utils::{calculate_emojis_per_row, generate_row_sizes, search_emojis};
 use crate::{input, variant_overlay};
 
@@ -70,23 +69,14 @@ impl Render for Picker {
                     .flex_row()
                     .justify_between(),
             )
-            .child(
-                div()
-                    .relative()
-                    .size_full()
-                    .child(render_grid(
-                        cx.entity().clone(),
-                        active_emoji.clone(),
-                        emojis_per_row,
-                        row_sizes,
-                        emoji_text_size,
-                        &self.scroll_handle,
-                    ))
-                    .when_some(self.selected_emoji, |parent, emoji_idx| {
-                        let emoji = &active_emoji[emoji_idx];
-                        parent.child(variant_overlay::render(emoji))
-                    }),
-            )
+            .child(div().size_full().child(Self::render_grid(
+                cx.entity().clone(),
+                active_emoji.clone(),
+                emojis_per_row,
+                row_sizes,
+                emoji_text_size,
+                &self.scroll_handle,
+            )))
             .child(
                 div()
                     .absolute()
