@@ -15,10 +15,7 @@ use gpui::{
 use gpui_component::input::{InputState, TextInput};
 use gpui_component::theme::Theme;
 
-use crate::{
-    calculate_emojis_per_row, generate_row_sizes, render_emoji_grid, render_input,
-    render_variant_overlay, search_emojis,
-};
+use crate::utils::{calculate_emojis_per_row, generate_row_sizes, search_emojis};
 
 #[derive(Clone)]
 pub(crate) struct Picker {
