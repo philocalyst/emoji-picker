@@ -15,8 +15,9 @@ use gpui::{
 use gpui_component::input::{InputState, TextInput};
 use gpui_component::theme::Theme;
 
+use crate::emojir::render_grid;
 use crate::utils::{calculate_emojis_per_row, generate_row_sizes, search_emojis};
-use crate::{input, render_emoji_grid, variant_overlay};
+use crate::{input, variant_overlay};
 
 #[derive(Clone)]
 pub(crate) struct Picker {
@@ -73,7 +74,7 @@ impl Render for Picker {
                 div()
                     .relative()
                     .size_full()
-                    .child(render_emoji_grid(
+                    .child(render_grid(
                         cx.entity().clone(),
                         active_emoji.clone(),
                         emojis_per_row,
