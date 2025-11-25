@@ -18,6 +18,7 @@ use gpui_component::theme::Theme;
 use crate::picker::Picker;
 use crate::utils::generate_skin_tone_variants;
 
+mod input;
 mod picker;
 mod utils;
 mod variant_overlay;
