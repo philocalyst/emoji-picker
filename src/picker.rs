@@ -1,22 +1,16 @@
 use emoji;
 use emoji::Emoji;
-use emoji_search;
-use gpui_component::input::InputEvent;
+use gpui_component::VirtualListScrollHandle;
 use gpui_component::scroll::{Scrollbar, ScrollbarState};
-use gpui_component::{Root, VirtualListScrollHandle, v_virtual_list};
-use std::rc::Rc;
-use std::sync::LazyLock;
 
 use gpui::{
-    App, Application, Bounds, Context, Div, Entity, FocusHandle, Focusable, KeyBinding, Keystroke,
-    Pixels, Size, Window, WindowBounds, WindowOptions, actions, black, div, prelude::*, px, rems,
-    rgb, size, white,
+    App, Context, Entity, FocusHandle, Focusable, Keystroke, Window, black, div, prelude::*, rgb,
+    white,
 };
-use gpui_component::input::{InputState, TextInput};
-use gpui_component::theme::Theme;
+use gpui_component::input::InputState;
 
+use crate::input;
 use crate::utils::{calculate_emojis_per_row, generate_row_sizes, search_emojis};
-use crate::{input, variant_overlay};
 
 #[derive(Clone)]
 pub(crate) struct Picker {

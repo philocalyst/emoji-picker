@@ -1,22 +1,17 @@
-use emoji;
-use emoji::Emoji;
 use emoji_search;
 use gpui_component::input::InputEvent;
-use gpui_component::scroll::{Scrollbar, ScrollbarState};
-use gpui_component::{Root, VirtualListScrollHandle, v_virtual_list};
-use std::rc::Rc;
+use gpui_component::scroll::ScrollbarState;
+use gpui_component::{Root, VirtualListScrollHandle};
 use std::sync::LazyLock;
 
 use gpui::{
-    App, Application, Bounds, Context, Div, Entity, FocusHandle, Focusable, KeyBinding, Keystroke,
-    Pixels, Size, Window, WindowBounds, WindowOptions, actions, black, div, prelude::*, px, rems,
-    rgb, size, white,
+    App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowOptions, actions,
+    prelude::*, px, size,
 };
-use gpui_component::input::{InputState, TextInput};
+use gpui_component::input::InputState;
 use gpui_component::theme::Theme;
 
 use crate::picker::Picker;
-use crate::utils::generate_skin_tone_variants;
 
 mod emojir;
 mod input;
@@ -71,7 +66,7 @@ fn main() {
                     input_state: input_state.clone(),
                     recent_keystrokes: vec![],
                     focus_handle: cx.focus_handle(),
-                    selected_emoji: Some(5),
+                    selected_emoji: None,
                 });
 
                 // Wrap InputExample in Root - convert to AnyView

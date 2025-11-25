@@ -13,7 +13,6 @@ use gpui::Styled;
 use gpui::div;
 use gpui::prelude::FluentBuilder;
 use gpui::rems;
-use gpui::white;
 use gpui_component::VirtualListScrollHandle;
 use gpui_component::v_virtual_list;
 
