@@ -16,6 +16,7 @@ use gpui_component::input::{InputState, TextInput};
 use gpui_component::theme::Theme;
 
 use crate::utils::{calculate_emojis_per_row, generate_row_sizes, search_emojis};
+use crate::{input, render_emoji_grid, variant_overlay};
 
 #[derive(Clone)]
 pub(crate) struct Picker {
@@ -53,7 +54,7 @@ impl Render for Picker {
 
         div()
             .justify_center()
-            .child(render_input(&self.input_state))
+            .child(input::render(&self.input_state))
             .bg(rgb(0xaaaaaa))
             .track_focus(&self.focus_handle(cx))
             .flex()
@@ -82,7 +83,7 @@ impl Render for Picker {
                     ))
                     .when_some(self.selected_emoji, |parent, emoji_idx| {
                         let emoji = &active_emoji[emoji_idx];
-                        parent.child(render_variant_overlay(emoji))
+                        parent.child(variant_overlay::render(emoji))
                     }),
             )
             .child(
