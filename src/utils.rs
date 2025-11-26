@@ -29,31 +29,38 @@ pub(crate) fn generate_row_sizes(
 
 /// Generates skin tone variant strings for a given emoji
 pub(crate) fn generate_skin_tone_variants(emoji_glyph: &str) -> Option<Vec<String>> {
-    use unicode_segmentation::UnicodeSegmentation;
+    let supports_skin_tone = emoji_glyph.chars().any(|c| {
+        let code = c as u32;
+        // People ranges
+        (0x1F385..=0x1F93E).contains(&code) || // Various people
+        (0x1F442..=0x1F4AA).contains(&code) || // Body parts
+        (0x1F574..=0x1F57A).contains(&code) || // More people
+        (0x1F590..=0x1F595).contains(&code) || // Hand gestures
+        (0x1F645..=0x1F64F).contains(&code) || // Person gestures
+        (0x1F6A3..=0x1F6CC).contains(&code) || // Activities
+        (0x1F90C..=0x1F93E).contains(&code) || // Supplemental
+        (0x1F9B5..=0x1F9BB).contains(&code) || // Body parts extended
+        (0x1FAC3..=0x1FAF8).contains(&code) // Extended pictographs
+    });
+
+    if !supports_skin_tone {
+        return None;
+    }
 
     let skin_tone_modifiers = [
-        "\u{1F3FB}", // Light Skin Tone
-        "\u{1F3FC}", // Medium-Light Skin Tone
-        "\u{1F3FD}", // Medium Skin Tone
-        "\u{1F3FE}", // Medium-Dark Skin Tone
-        "\u{1F3FF}", // Dark Skin Tone
+        "\u{1F3FB}",
+        "\u{1F3FC}",
+        "\u{1F3FD}",
+        "\u{1F3FE}",
+        "\u{1F3FF}",
     ];
 
-    // Test if skin tone modifier is actually applied (not just appended)
-    let test_variant = format!("{}{}", emoji_glyph, skin_tone_modifiers[0]);
-    let grapheme_count = test_variant.graphemes(true).count();
-
-    // If the modifier combines (grapheme count == 1), generate all variants
-    if grapheme_count == 1 {
-        Some(
-            skin_tone_modifiers
-                .iter()
-                .map(|modifier| format!("{}{}", emoji_glyph, modifier))
-                .collect(),
-        )
-    } else {
-        None
-    }
+    Some(
+        skin_tone_modifiers
+            .iter()
+            .map(|modifier| format!("{}{}", emoji_glyph, modifier))
+            .collect(),
+    )
 }
 
 /// Searches for emojis based on the provided text query
