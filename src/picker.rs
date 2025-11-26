@@ -2,7 +2,7 @@ use emoji::{self, Emoji};
 use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Keystroke, StatefulInteractiveElement, Window, black, div, green, prelude::{FluentBuilder, *}, rgb, white};
 use gpui_component::{VirtualListScrollHandle, input::InputState, scroll::{Scrollbar, ScrollbarState, ScrollbarStateInner}};
 
-use crate::{input, utils::{calculate_emojis_per_row, generate_row_sizes, search_emojis}};
+use crate::{bar, input, utils::{calculate_emojis_per_row, generate_row_sizes, search_emojis}};
 
 #[derive(Clone)]
 pub(crate) struct Picker {
@@ -51,11 +51,9 @@ impl Render for Picker {
 					.border_color(black())
 					.flex()
 					.flex_row()
-					.justify_between()
-					.on_click(move |_event, _other, _ctx| {
-						scroll_handle.scroll_to_bottom();
-					}),
+					.justify_between(),
 			)
+			.child(bar::render(self.scroll_handle.clone()))
 			.child(div().size_full().child(Self::render_grid(
 				cx.entity().clone(),
 				active_emoji.clone(),
