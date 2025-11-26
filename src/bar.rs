@@ -7,8 +7,11 @@ use crate::utils::get_bar_icons;
 pub(crate) fn render(scrollbar: VirtualListScrollHandle) -> impl IntoElement {
 	div()
 		.id(60)
+		.absolute()
+		.top_0()
+		.left_0()
 		.bg(gray_300())
-		.opacity(50f32)
+		.opacity(10f32)
 		.on_click(move |_event, _other, _ctx| {
 			scrollbar.scroll_to_bottom();
 		})
