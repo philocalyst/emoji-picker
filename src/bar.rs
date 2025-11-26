@@ -1,5 +1,5 @@
 use gpui::{Entity, InteractiveElement, IntoElement, ParentElement, StatefulInteractiveElement, Styled, div, img, px, rgb};
-use gpui_component::{VirtualListScrollHandle, input::{InputState, TextInput}, scroll::Scrollbar};
+use gpui_component::{VirtualListScrollHandle, gray_300, input::{InputState, TextInput}, scroll::Scrollbar};
 
 use crate::utils::get_bar_icons;
 
@@ -7,10 +7,13 @@ use crate::utils::get_bar_icons;
 pub(crate) fn render(scrollbar: VirtualListScrollHandle) -> impl IntoElement {
 	div()
 		.id(60)
+		.bg(gray_300())
+		.opacity(50f32)
 		.on_click(move |_event, _other, _ctx| {
 			scrollbar.scroll_to_bottom();
 		})
 		.flex()
 		.flex_row()
+		.justify_center()
 		.children(get_bar_icons().iter().map(|path| img(path.to_owned()).w_8().h_8()))
 }

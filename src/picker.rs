@@ -1,6 +1,6 @@
 use emoji::{self, Emoji};
 use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Keystroke, StatefulInteractiveElement, Window, black, div, green, prelude::{FluentBuilder, *}, rgb, white};
-use gpui_component::{VirtualListScrollHandle, input::InputState, scroll::{Scrollbar, ScrollbarState, ScrollbarStateInner}};
+use gpui_component::{VirtualListScrollHandle, gray_100, gray_800, input::InputState, scroll::{Scrollbar, ScrollbarState, ScrollbarStateInner}};
 
 use crate::{bar, input, utils::{calculate_emojis_per_row, generate_row_sizes, search_emojis}};
 
@@ -25,20 +25,17 @@ impl Render for Picker {
 	fn render(&mut self, w: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
 		let active_text = self.input_state.read(cx).text().clone().to_string();
 		let active_emoji = search_emojis(&active_text);
-		let emoji_text_size = 1.5;
+		let emoji_text_size = 2.0;
 		let default_emoji_size = w.rem_size() * emoji_text_size;
 		let container_width = w.bounds().size.width.to_f64();
 		let emojis_per_row = calculate_emojis_per_row(container_width, default_emoji_size);
 		let row_sizes =
 			generate_row_sizes(active_emoji.len(), emojis_per_row, container_width, default_emoji_size);
 
-		// Clone the scroll_handle before using it in the closure
-		let scroll_handle = self.scroll_handle.clone();
-
 		div()
 			.justify_center()
 			.child(input::render(&self.input_state))
-			.bg(rgb(0xaaaaaa))
+			.bg(gray_800())
 			.track_focus(&self.focus_handle(cx))
 			.flex()
 			.flex_col()
