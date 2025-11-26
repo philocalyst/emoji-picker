@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 use emoji::Emoji;
 use gpui::{Pixels, Size, size};
+use unicode_segmentation::UnicodeSegmentation;
 
 use crate::SEARCHER;
 
@@ -27,7 +28,9 @@ pub(crate) fn generate_row_sizes(
 }
 
 /// Generates skin tone variant strings for a given emoji
-pub(crate) fn generate_skin_tone_variants(emoji_glyph: &str) -> Vec<String> {
+pub(crate) fn generate_skin_tone_variants(emoji_glyph: &str) -> Option<Vec<String>> {
+    use unicode_segmentation::UnicodeSegmentation;
+
     let skin_tone_modifiers = [
         "\u{1F3FB}", // Light Skin Tone
         "\u{1F3FC}", // Medium-Light Skin Tone
@@ -36,15 +39,21 @@ pub(crate) fn generate_skin_tone_variants(emoji_glyph: &str) -> Vec<String> {
         "\u{1F3FF}", // Dark Skin Tone
     ];
 
-    skin_tone_modifiers
-        .iter()
-        .map(|modifier| {
-            let mut variant_glyph = String::with_capacity(emoji_glyph.len() + modifier.len());
-            variant_glyph.push_str(emoji_glyph);
-            variant_glyph.push_str(modifier);
-            variant_glyph
-        })
-        .collect()
+    // Test if skin tone modifier is actually applied (not just appended)
+    let test_variant = format!("{}{}", emoji_glyph, skin_tone_modifiers[0]);
+    let grapheme_count = test_variant.graphemes(true).count();
+
+    // If the modifier combines (grapheme count == 1), generate all variants
+    if grapheme_count == 1 {
+        Some(
+            skin_tone_modifiers
+                .iter()
+                .map(|modifier| format!("{}{}", emoji_glyph, modifier))
+                .collect(),
+        )
+    } else {
+        None
+    }
 }
 
 /// Searches for emojis based on the provided text query
