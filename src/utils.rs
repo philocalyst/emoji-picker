@@ -73,7 +73,10 @@ pub(crate) fn generate_skin_tone_variants(emoji_glyph: &str) -> Option<Vec<Strin
 /// Searches for emojis based on the provided text query
 pub(crate) fn search_emojis(text: &str) -> Vec<&'static Emoji> {
 	match text {
-		"" => emoji::lookup_by_glyph::iter_emoji().filter(|emoji| !emoji.name.contains(":")).collect(),
+		"" => emoji::lookup_by_glyph::iter_emoji()
+			.cloned()
+			.filter(|emoji| !emoji.name.contains(":"))
+			.collect(),
 		_ => {
 			let matcher: &'static emoji_search::EmojiSearcher = &*SEARCHER;
 			matcher.search_best_matching_emojis(text, Some(1000)).unwrap()
