@@ -38,7 +38,6 @@ impl Render for Picker {
 			.bg(gray_800())
 			.track_focus(&self.focus_handle(cx))
 			.flex()
-			.relative()
 			.flex_col()
 			.size_full()
 			.child(

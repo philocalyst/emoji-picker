@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use emoji::Emoji;
+use emoji::{Emoji, EmojiEntry};
 use gpui::{Div, Entity, InteractiveElement, IntoElement, ParentElement, Pixels, Size, StatefulInteractiveElement, Styled, div, prelude::FluentBuilder, rems};
 use gpui_component::{VirtualListScrollHandle, v_virtual_list};
 
@@ -10,14 +10,14 @@ impl Picker {
 	/// Renders a single emoji button
 	pub(crate) fn render_button(
 		emoji_idx: usize,
-		emoji: &Emoji,
+		emoji: &EmojiEntry,
 		selected_emoji: Option<usize>,
 		entity: Entity<Picker>,
 	) -> impl IntoElement {
 		div()
 			.id(emoji_idx)
 			.relative()
-			.child(emoji.glyph)
+			.child(emoji.emoji().glyph)
 			.when(selected_emoji == Some(emoji_idx), |parent| {
 				parent.child(div().absolute().top_0().left_0().child(variant_overlay::render(emoji)))
 			})
@@ -40,7 +40,7 @@ impl Picker {
 	pub(crate) fn render_row(
 		start_idx: usize,
 		end_idx: usize,
-		emojis: &[&Emoji],
+		emojis: &[&EmojiEntry],
 		selected_emoji: Option<usize>,
 		entity: Entity<Picker>,
 	) -> Div {
@@ -53,7 +53,7 @@ impl Picker {
 	/// Renders the emoji grid with virtual scrolling
 	pub(crate) fn render_grid(
 		entity: Entity<Picker>,
-		emojis: Vec<&'static Emoji>,
+		emojis: Vec<&'static EmojiEntry>,
 		emojis_per_row: usize,
 		selected_emoji: Option<usize>,
 		row_sizes: Rc<Vec<Size<Pixels>>>,
