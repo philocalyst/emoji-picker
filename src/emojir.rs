@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{ops::Range, rc::Rc};
 
 use emoji::{Emoji, EmojiEntry};
 use gpui::{Div, Entity, InteractiveElement, IntoElement, ParentElement, Pixels, Size, StatefulInteractiveElement, Styled, div, prelude::FluentBuilder, rems};
@@ -52,7 +52,7 @@ impl Picker {
 
 	/// Renders the emoji grid with virtual scrolling
 	pub(crate) fn render_grid(
-		entity: Entity<Picker>,
+		picker: Entity<Picker>,
 		emojis: Vec<&'static EmojiEntry>,
 		emojis_per_row: usize,
 		selected_emoji: Option<usize>,
@@ -60,18 +60,21 @@ impl Picker {
 		emoji_text_size: f32,
 		scroll_handle: &VirtualListScrollHandle,
 	) -> impl IntoElement {
-		let entity_clone = entity.clone();
-
+		// This list is not a long list of emojis, it's a long list of rows of emojis
 		v_virtual_list(
-			entity,
+			picker.clone(),
 			"emojis",
 			row_sizes,
-			move |_container: &mut Picker, range: std::ops::Range<usize>, _window, _cx| {
-				range
+			move |_picker, active_rows: Range<usize>, _window, _ctx| {
+				active_rows
 					.map(|row_idx| {
+						// Jump to the start of where the next row should be drawn
 						let start_idx = row_idx * emojis_per_row;
+
+						// The end of this specific row
 						let end_idx = (start_idx + emojis_per_row).min(emojis.len());
-						Self::render_row(start_idx, end_idx, &emojis, selected_emoji, entity_clone.clone())
+
+						Self::render_row(start_idx, end_idx, &emojis, selected_emoji, picker.clone())
 					})
 					.collect()
 			},
