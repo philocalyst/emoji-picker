@@ -1,4 +1,4 @@
-use emoji::{self, Emoji};
+use emoji::{self, Emoji, EmojiEntry};
 use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Keystroke, StatefulInteractiveElement, Window, black, div, green, prelude::{FluentBuilder, *}, rgb, white};
 use gpui_component::{VirtualListScrollHandle, gray_100, gray_800, input::InputState, scroll::{Scrollbar, ScrollbarState, ScrollbarStateInner}};
 
@@ -12,7 +12,7 @@ pub(crate) struct Picker {
 	pub(crate) focus_handle:      FocusHandle,
 
 	/// The position of the selected emoji, if there is one
-	pub(crate) selected_emoji: Option<usize>,
+	pub(crate) selected_emoji: Option<EmojiEntry>,
 	pub(crate) scroll_handle:  VirtualListScrollHandle,
 	pub(crate) scroll_state:   ScrollbarState,
 }
