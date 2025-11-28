@@ -6,7 +6,6 @@ use gpui_component::{Root, VirtualListScrollHandle, input::{InputEvent, InputSta
 
 use crate::picker::Picker;
 
-mod bar;
 mod emojir;
 mod input;
 mod picker;
