@@ -48,7 +48,7 @@ pub(crate) fn generate_row_sizes(
 /// Searches for emojis based on the provided text query
 pub(crate) fn search_emojis(text: &str) -> Vec<&'static EmojiEntry> {
 	match text {
-		"" => emoji::lookup_by_glyph::iter_emoji().filter(|emoji| emoji.tones().is_some()).collect(),
+		"" => emoji::lookup_by_glyph::iter_emoji().collect(),
 		_ => {
 			let matcher: &'static emoji_search::EmojiSearcher = &*SEARCHER;
 			matcher.search_best_matching_emojis(text, Some(1000)).unwrap()
