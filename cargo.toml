@@ -8,4 +8,5 @@ emoji = { path = "../emoji-rs/emoji"}
 emoji_search = {path = "../emoji_search"}
 gpui = "0.2.0"
 gpui-component = "0.4.2"
+espanso-inject = {git = "https://github.com/espanso/espanso"}
 unicode-segmentation = "1.12.0"
