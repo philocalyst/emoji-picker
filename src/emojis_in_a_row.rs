@@ -1,14 +1,14 @@
 use emoji::EmojiEntry;
-use gpui::{App, IntoElement, ParentElement, RenderOnce, Styled, Window, div};
-use gpui_component::{Selectable, gray_200, h_flex};
+use gpui::{App, InteractiveElement, IntoElement, ParentElement, RenderOnce, StatefulInteractiveElement, Styled, Window, div, prelude::FluentBuilder};
+use gpui_component::{ActiveTheme, Selectable, h_flex};
 
 #[derive(IntoElement)]
-pub(crate) struct Emoji {
-	pub(crate) emoji:    &'static EmojiEntry,
+pub(crate) struct EmojiRow {
+	pub(crate) emojis:   Vec<&'static EmojiEntry>,
 	pub(crate) selected: bool,
 }
 
-impl Selectable for Emoji {
+impl Selectable for EmojiRow {
 	fn selected(mut self, selected: bool) -> Self {
 		self.selected = selected;
 		self
@@ -17,13 +17,17 @@ impl Selectable for Emoji {
 	fn is_selected(&self) -> bool { self.selected }
 }
 
-impl RenderOnce for Emoji {
-	fn render(self, _: &mut Window, _: &mut App) -> impl IntoElement {
-		let div = match self.selected {
-			true => div().bg(gray_200()),
-			false => div(),
-		};
-
-		h_flex().gap_2().child(div.cursor_pointer().child(self.emoji.emoji().glyph))
+impl RenderOnce for EmojiRow {
+	fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
+		h_flex().gap_2().children(self.emojis.iter().map(|emoji| {
+			div()
+				.id(emoji.emoji().glyph)
+				.when(self.selected, |div| div.bg(cx.theme().accent.opacity(0.5)))
+				.on_click(|click_event, window, app| {
+					dbg!("hi");
+				})
+				.cursor_pointer()
+				.child(emoji.emoji().glyph)
+		}))
 	}
 }

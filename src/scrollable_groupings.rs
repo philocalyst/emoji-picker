@@ -2,7 +2,7 @@ use emoji::{EmojiEntry, Group};
 use gpui::{App, Context, IntoElement, ParentElement, RenderOnce, Styled, Task, Window, div};
 use gpui_component::{IndexPath, Selectable, StyledExt, h_flex, list::{ListDelegate, ListState}};
 
-use crate::{emojis_in_a_row::Emoji, utilities::search_emojis};
+use crate::{emojis_in_a_row::EmojiRow, utilities::search_emojis};
 
 pub(crate) struct GroupedEmojis {
 	pub(crate) group:  Group,
@@ -62,7 +62,7 @@ impl EmojiListDelegate {
 }
 
 impl ListDelegate for EmojiListDelegate {
-	type Item = Emoji;
+	type Item = EmojiRow;
 
 	fn sections_count(&self, _: &App) -> usize { self.grouped_emojis.len() }
 
@@ -87,18 +87,16 @@ impl ListDelegate for EmojiListDelegate {
 
 	fn render_item(&self, ix: IndexPath, _: &mut Window, _: &mut App) -> Option<Self::Item> {
 		let section_emojis = &self.grouped_emojis.get(ix.section)?.emojis;
-		let row_starting = ix.row * self.emojis_per_row;
+		let start_idx = ix.row * self.emojis_per_row;
+		let end_idx = (start_idx + self.emojis_per_row).min(section_emojis.len());
 
-		if row_starting >= section_emojis.len() {
+		if start_idx >= section_emojis.len() {
 			return None;
 		}
 
-		let current_emoji = row_starting + ix.column;
+		let row_emojis = section_emojis[start_idx..end_idx].to_vec();
 
-		Some(Emoji {
-			emoji:    section_emojis[current_emoji],
-			selected: self.selected_index == Some(ix),
-		})
+		Some(EmojiRow { emojis: row_emojis, selected: self.selected_index == Some(ix) })
 	}
 
 	fn set_selected_index(
