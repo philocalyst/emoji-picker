@@ -1,8 +1,8 @@
-use emoji::{self, Emoji, EmojiEntry, Group};
-use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Keystroke, StatefulInteractiveElement, Subscription, Window, black, div, green, prelude::{FluentBuilder, *}, rgb, white};
-use gpui_component::{IndexPath, VirtualListScrollHandle, gray_100, gray_800, input::InputState, list::{self, List, ListEvent, ListState}, scroll::{Scrollbar, ScrollbarState, ScrollbarStateInner}, v_flex};
+use emoji::{Emoji, EmojiEntry};
+use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Subscription, Window, prelude::*};
+use gpui_component::{IndexPath, input::InputState, list::{List, ListEvent, ListState}, v_flex};
 
-use crate::{emojir::EmojiListDelegate, input, utils::{calculate_emojis_per_row, generate_row_sizes, search_emojis}};
+use crate::{emojir::EmojiListDelegate, input, utils::calculate_emojis_per_row};
 
 pub(crate) struct Picker {
 	pub(crate) emojis:       Vec<Emoji>,

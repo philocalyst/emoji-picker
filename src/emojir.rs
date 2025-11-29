@@ -1,8 +1,8 @@
-use emoji::{Emoji, EmojiEntry, Group};
-use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, IntoElement, ParentElement, Render, RenderOnce, Styled, Subscription, Task, Window, div, prelude::FluentBuilder};
-use gpui_component::{IndexPath, Selectable, StyledExt, h_flex, input::InputState, list::{List, ListDelegate, ListEvent, ListState}, v_flex};
+use emoji::{EmojiEntry, Group};
+use gpui::{App, Context, IntoElement, ParentElement, RenderOnce, Styled, Task, Window, div};
+use gpui_component::{IndexPath, Selectable, StyledExt, h_flex, list::{ListDelegate, ListState}};
 
-use crate::{input, utils::{calculate_emojis_per_row, search_emojis}};
+use crate::utils::search_emojis;
 
 pub(crate) struct GroupedEmojis {
 	pub(crate) group:  Group,

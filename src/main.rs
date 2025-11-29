@@ -2,7 +2,7 @@ use std::sync::LazyLock;
 
 use emoji_search;
 use gpui::{AnyView, App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowOptions, actions, prelude::*, px, size};
-use gpui_component::{Root, VirtualListScrollHandle, input::{InputEvent, InputState}, scroll::ScrollbarState, theme::Theme};
+use gpui_component::{Root, input::{InputEvent, InputState}, theme::Theme};
 
 use crate::picker::Picker;
 
