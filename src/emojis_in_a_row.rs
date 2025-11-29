@@ -22,9 +22,11 @@ impl RenderOnce for EmojiRow {
 		h_flex().gap_2().children(self.emojis.iter().map(|emoji| {
 			div()
 				.id(emoji.emoji().glyph)
-				.when(self.selected, |div| div.bg(cx.theme().accent.opacity(0.5)))
+				.hover(|div| div.bg(cx.theme().accent.opacity(1.0)))
 				.on_click(|click_event, window, app| {
-					dbg!("hi");
+					espanso_inject::get_injector(espanso_inject::InjectorCreationOptions::default())
+						.unwrap()
+						.send_string("hi", espanso_inject::InjectionOptions::default());
 				})
 				.cursor_pointer()
 				.child(emoji.emoji().glyph)
