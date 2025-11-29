@@ -1,86 +1,149 @@
-use std::{ops::Range, rc::Rc};
+use emoji::{Emoji, EmojiEntry, Group};
+use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, IntoElement, ParentElement, Render, RenderOnce, Styled, Subscription, Task, Window, div, prelude::FluentBuilder};
+use gpui_component::{IndexPath, Selectable, StyledExt, h_flex, input::InputState, list::{List, ListDelegate, ListEvent, ListState}, v_flex};
 
-use emoji::{Emoji, EmojiEntry};
-use gpui::{Div, Entity, InteractiveElement, IntoElement, ParentElement, Pixels, Size, StatefulInteractiveElement, Styled, div, prelude::FluentBuilder, rems};
-use gpui_component::{VirtualListScrollHandle, v_virtual_list};
+use crate::{input, utils::{calculate_emojis_per_row, search_emojis}};
 
-use crate::{picker::Picker, variant_overlay};
+pub(crate) struct GroupedEmojis {
+	pub(crate) group:  Group,
+	pub(crate) emojis: Vec<&'static EmojiEntry>,
+}
 
-impl Picker {
-	/// Renders a single emoji button
-	pub(crate) fn render_button(
-		emoji_idx: usize,
-		emoji: &EmojiEntry,
-		selected_emoji: Option<usize>,
-		entity: Entity<Picker>,
-	) -> impl IntoElement {
-		div()
-			.id(emoji_idx)
-			.relative()
-			.child(emoji.emoji().glyph)
-			.when(selected_emoji == Some(emoji_idx), |parent| {
-				parent.child(div().absolute().top_0().left_0().child(variant_overlay::render(emoji)))
-			})
-			.cursor_pointer()
-			.on_click({
-				let emoji = emoji.to_owned();
-				let entity = entity.clone(); // Clone for the closure
-				move |_event, _, ctx| {
-					// Update using the correct GPUI API
-					entity.update(ctx, |picker, cx| {
-						picker.selected_emoji = Some(emoji_idx);
-						cx.notify();
-					});
-					println!("{emoji:?}");
+pub(crate) struct EmojiListDelegate {
+	pub(crate) grouped_emojis: Vec<GroupedEmojis>,
+	pub(crate) emojis_per_row: usize,
+	pub(crate) selected_index: Option<IndexPath>,
+	pub(crate) query:          String,
+}
+
+impl EmojiListDelegate {
+	pub(crate) fn new(emojis_per_row: usize) -> Self {
+		let mut grouped = Vec::new();
+
+		for group in emoji::Group::iter() {
+			let group_emojis: Vec<&'static EmojiEntry> =
+				emoji::lookup_by_glyph::iter_emoji().filter(|e| e.emoji().group == group).collect();
+
+			if !group_emojis.is_empty() {
+				grouped.push(GroupedEmojis { group, emojis: group_emojis });
+			}
+		}
+
+		Self { grouped_emojis: grouped, emojis_per_row, selected_index: None, query: String::new() }
+	}
+
+	fn update_search(&mut self, query: &str) {
+		self.query = query.to_string();
+
+		self.grouped_emojis.clear();
+
+		if query.is_empty() {
+			for group in emoji::Group::iter() {
+				let group_emojis: Vec<&'static EmojiEntry> =
+					emoji::lookup_by_glyph::iter_emoji().filter(|e| e.emoji().group == group).collect();
+
+				if !group_emojis.is_empty() {
+					self.grouped_emojis.push(GroupedEmojis { group, emojis: group_emojis });
 				}
-			})
+			}
+		} else {
+			let filtered = search_emojis(query);
+
+			for group in emoji::Group::iter() {
+				let group_emojis: Vec<&'static EmojiEntry> =
+					filtered.iter().filter(|e| e.emoji().group == group).copied().collect();
+
+				if !group_emojis.is_empty() {
+					self.grouped_emojis.push(GroupedEmojis { group, emojis: group_emojis });
+				}
+			}
+		}
+	}
+}
+
+#[derive(IntoElement)]
+pub(crate) struct EmojiRow {
+	emojis:   Vec<&'static EmojiEntry>,
+	selected: bool,
+}
+
+impl Selectable for EmojiRow {
+	fn selected(mut self, selected: bool) -> Self {
+		self.selected = selected;
+		self
 	}
 
-	/// Renders a row of emojis for the virtual list
-	pub(crate) fn render_row(
-		start_idx: usize,
-		end_idx: usize,
-		emojis: &[&EmojiEntry],
-		selected_emoji: Option<usize>,
-		entity: Entity<Picker>,
-	) -> Div {
-		div().flex().flex_row().children((start_idx..end_idx).map(|emoji_idx| {
-			let emoji = emojis[emoji_idx];
-			Self::render_button(emoji_idx, emoji, selected_emoji, entity.clone())
-		}))
+	fn is_selected(&self) -> bool { self.selected }
+}
+
+impl RenderOnce for EmojiRow {
+	fn render(self, _: &mut Window, _: &mut App) -> impl IntoElement {
+		h_flex()
+			.gap_2()
+			.children(self.emojis.iter().map(|emoji| div().cursor_pointer().child(emoji.emoji().glyph)))
+	}
+}
+
+impl ListDelegate for EmojiListDelegate {
+	type Item = EmojiRow;
+
+	fn sections_count(&self, _: &App) -> usize { self.grouped_emojis.len() }
+
+	fn items_count(&self, section: usize, _: &App) -> usize {
+		if section >= self.grouped_emojis.len() {
+			return 0;
+		}
+		let emoji_count = self.grouped_emojis[section].emojis.len();
+		(emoji_count + self.emojis_per_row - 1) / self.emojis_per_row
 	}
 
-	/// Renders the emoji grid with virtual scrolling
-	pub(crate) fn render_grid(
-		picker: Entity<Picker>,
-		emojis: Vec<&'static EmojiEntry>,
-		emojis_per_row: usize,
-		selected_emoji: Option<usize>,
-		row_sizes: Rc<Vec<Size<Pixels>>>,
-		emoji_text_size: f32,
-		scroll_handle: &VirtualListScrollHandle,
-	) -> impl IntoElement {
-		// This list is not a long list of emojis, it's a long list of rows of emojis
-		v_virtual_list(
-			picker.clone(),
-			"emojis",
-			row_sizes,
-			move |_picker, active_rows: Range<usize>, _window, _ctx| {
-				active_rows
-					.map(|row_idx| {
-						// Jump to the start of where the next row should be drawn
-						let start_idx = row_idx * emojis_per_row;
+	fn render_section_header(
+		&self,
+		section: usize,
+		_: &mut Window,
+		_: &mut App,
+	) -> Option<impl IntoElement> {
+		self.grouped_emojis.get(section).map(|grouped| {
+			div().px_2().py_1().text_sm().font_semibold().child(format!("{:?}", grouped.group))
+		})
+	}
 
-						// The end of this specific row
-						let end_idx = (start_idx + emojis_per_row).min(emojis.len());
+	fn render_item(&self, ix: IndexPath, _: &mut Window, _: &mut App) -> Option<Self::Item> {
+		let section_emojis = &self.grouped_emojis.get(ix.section)?.emojis;
+		let start_idx = ix.row * self.emojis_per_row;
+		let end_idx = (start_idx + self.emojis_per_row).min(section_emojis.len());
 
-						Self::render_row(start_idx, end_idx, &emojis, selected_emoji, picker.clone())
-					})
-					.collect()
-			},
-		)
-		.text_size(rems(emoji_text_size))
-		.track_scroll(scroll_handle)
-		.h_full()
+		if start_idx >= section_emojis.len() {
+			return None;
+		}
+
+		let row_emojis = section_emojis[start_idx..end_idx].to_vec();
+
+		Some(EmojiRow { emojis: row_emojis, selected: self.selected_index == Some(ix) })
+	}
+
+	fn set_selected_index(
+		&mut self,
+		ix: Option<IndexPath>,
+		_: &mut Window,
+		cx: &mut Context<ListState<Self>>,
+	) {
+		self.selected_index = ix;
+		cx.notify();
+	}
+
+	fn confirm(&mut self, secondary: bool, _: &mut Window, _: &mut Context<ListState<Self>>) {
+		println!("Confirmed with secondary: {}", secondary);
+	}
+
+	fn perform_search(
+		&mut self,
+		query: &str,
+		_: &mut Window,
+		cx: &mut Context<ListState<Self>>,
+	) -> Task<()> {
+		self.update_search(query);
+		cx.notify();
+		Task::ready(())
 	}
 }

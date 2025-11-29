@@ -1,7 +1,7 @@
 use gpui::{Entity, IntoElement, Styled, px, rgb};
-use gpui_component::input::{InputState, TextInput};
+use gpui_component::input::{Input, InputState};
 
 /// Renders the text input field
 pub(crate) fn render(input_state: &Entity<InputState>) -> impl IntoElement {
-	TextInput::new(input_state).appearance(true).cleanable().bg(rgb(0xeeeeee)).w_full().p(px(4.))
+	Input::new(input_state).appearance(true).bg(rgb(0xeeeeee)).w_full().p(px(4.))
 }

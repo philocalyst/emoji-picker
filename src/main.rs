@@ -1,7 +1,7 @@
 use std::sync::LazyLock;
 
 use emoji_search;
-use gpui::{App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowOptions, actions, prelude::*, px, size};
+use gpui::{AnyView, App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowOptions, actions, prelude::*, px, size};
 use gpui_component::{Root, VirtualListScrollHandle, input::{InputEvent, InputState}, scroll::ScrollbarState, theme::Theme};
 
 use crate::picker::Picker;
@@ -51,18 +51,10 @@ fn main() {
 				)
 				.detach();
 
-				let input_example = cx.new(|cx| Picker {
-					emojis:            vec![],
-					scroll_handle:     VirtualListScrollHandle::new(),
-					scroll_state:      ScrollbarState::default(),
-					input_state:       input_state.clone(),
-					recent_keystrokes: vec![],
-					focus_handle:      cx.focus_handle(),
-					selected_emoji:    None,
-				});
+				let input_example = cx.new(|cx| Picker::new(window, cx));
 
 				// Wrap InputExample in Root - convert to AnyView
-				cx.new(|cx| Root::new(input_example.into(), window, cx))
+				cx.new(|cx| Root::new(AnyView::from(input_example), window, cx))
 			},
 		)
 		.unwrap();
