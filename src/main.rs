@@ -1,4 +1,4 @@
-use std::sync::LazyLock;
+use std::{process::Command, sync::LazyLock, thread::sleep, time::Duration};
 
 use emoji_search;
 use gpui::{AnyView, App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowOptions, actions, prelude::*, px, size};
@@ -42,6 +42,7 @@ fn main() {
 
 				window.focus(&input_state.read(cx).focus_handle(cx));
 
+				window.activate_window();
 				// Subscribe with correct closure signature
 				cx.subscribe(
 					&input_state,
@@ -60,7 +61,24 @@ fn main() {
 		)
 		.unwrap();
 
-		cx.on_action(|_: &Quit, cx| cx.quit());
+		cx.on_action(|_: &Quit, cx| {
+			inject_text();
+			cx.quit();
+		});
 		cx.bind_keys([KeyBinding::new("cmd-q", Quit, None)]);
 	});
+}
+
+fn inject_text() {
+	let output = Command::new("osascript")
+		.args(&["-e", &format!("tell application \"{}\" to activate", "ghostty")])
+		.output()
+		.unwrap();
+
+	sleep(Duration::from_secs(1));
+
+	espanso_inject::get_injector(espanso_inject::InjectorCreationOptions::default())
+		.unwrap()
+		.send_string("🌞", espanso_inject::InjectionOptions::default())
+		.unwrap();
 }
