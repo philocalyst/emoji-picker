@@ -6,10 +6,11 @@ use gpui_component::{Root, input::{InputEvent, InputState}, theme::Theme};
 
 use crate::picker::Picker;
 
-mod emojir;
+mod emojis_in_a_row;
 mod input;
 mod picker;
-mod utils;
+mod scrollable_groupings;
+mod utilities;
 mod variant_overlay;
 
 actions!(text_input, [Quit,]);

@@ -2,7 +2,7 @@ use emoji::{EmojiEntry, Group};
 use gpui::{App, Context, IntoElement, ParentElement, RenderOnce, Styled, Task, Window, div};
 use gpui_component::{IndexPath, Selectable, StyledExt, h_flex, list::{ListDelegate, ListState}};
 
-use crate::utils::search_emojis;
+use crate::{emojis_in_a_row::EmojiRow, utilities::search_emojis};
 
 pub(crate) struct GroupedEmojis {
 	pub(crate) group:  Group,
@@ -58,29 +58,6 @@ impl EmojiListDelegate {
 				}
 			}
 		}
-	}
-}
-
-#[derive(IntoElement)]
-pub(crate) struct EmojiRow {
-	emojis:   Vec<&'static EmojiEntry>,
-	selected: bool,
-}
-
-impl Selectable for EmojiRow {
-	fn selected(mut self, selected: bool) -> Self {
-		self.selected = selected;
-		self
-	}
-
-	fn is_selected(&self) -> bool { self.selected }
-}
-
-impl RenderOnce for EmojiRow {
-	fn render(self, _: &mut Window, _: &mut App) -> impl IntoElement {
-		h_flex()
-			.gap_2()
-			.children(self.emojis.iter().map(|emoji| div().cursor_pointer().child(emoji.emoji().glyph)))
 	}
 }
 

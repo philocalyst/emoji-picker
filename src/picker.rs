@@ -2,7 +2,7 @@ use emoji::{Emoji, EmojiEntry};
 use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Subscription, Window, prelude::*};
 use gpui_component::{IndexPath, input::InputState, list::{List, ListEvent, ListState}, v_flex};
 
-use crate::{emojir::EmojiListDelegate, input, utils::calculate_emojis_per_row};
+use crate::{input, scrollable_groupings::EmojiListDelegate, utilities::calculate_emojis_per_row};
 
 pub(crate) struct Picker {
 	pub(crate) input_state:  Entity<InputState>,
@@ -62,6 +62,7 @@ impl Picker {
 	}
 
 	fn index_path_to_emoji_index(&self, ix: IndexPath, cx: &App) -> Option<usize> {
+		dbg!(&ix);
 		let delegate = self.list_state.read(cx).delegate();
 
 		// Calculate global emoji index from IndexPath
@@ -75,14 +76,17 @@ impl Picker {
 			global_idx += delegate.grouped_emojis[section].emojis.len();
 		}
 
-		// Add emojis from rows in current section
+		// Add emojis from rows within the current section
 		if ix.section >= delegate.grouped_emojis.len() {
 			return None;
 		}
-
 		let emojis_per_row = delegate.emojis_per_row;
-		let start_idx = ix.row * emojis_per_row;
-		global_idx += start_idx;
+		let starting_row = ix.row * emojis_per_row;
+
+		global_idx += starting_row;
+
+		// Add the already acknowledged columns
+		global_idx += ix.column;
 
 		Some(global_idx)
 	}
