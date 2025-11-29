@@ -62,7 +62,6 @@ impl Picker {
 	}
 
 	fn index_path_to_emoji_index(&self, ix: IndexPath, cx: &App) -> Option<usize> {
-		dbg!(&ix);
 		let delegate = self.list_state.read(cx).delegate();
 
 		// Calculate global emoji index from IndexPath
