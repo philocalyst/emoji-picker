@@ -5,7 +5,6 @@ use gpui_component::{IndexPath, input::InputState, list::{List, ListEvent, ListS
 use crate::{emojir::EmojiListDelegate, input, utils::calculate_emojis_per_row};
 
 pub(crate) struct Picker {
-	pub(crate) emojis:       Vec<Emoji>,
 	pub(crate) input_state:  Entity<InputState>,
 	pub(crate) focus_handle: FocusHandle,
 
@@ -54,7 +53,6 @@ impl Picker {
 		});
 
 		Self {
-			emojis: Vec::new(),
 			input_state: cx.new(|cx| InputState::new(window, cx)),
 			focus_handle: cx.focus_handle(),
 			selected_emoji: None,
