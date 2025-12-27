@@ -1,5 +1,5 @@
 use emoji::{EmojiEntry, Group};
-use gpui::{App, Context, IntoElement, ParentElement, Styled, Task, Window, div};
+use gpui::{App, Context, Edges, IntoElement, ParentElement, Styled, Task, Window, div, px};
 use gpui_component::{IndexPath, StyledExt, list::{ListDelegate, ListState}};
 
 use crate::{core_row::EmojiRow, listgistics::EmojiListDelegate};
@@ -33,10 +33,9 @@ impl ListDelegate for EmojiListDelegate {
 		_: &mut App,
 	) -> Option<impl IntoElement> {
 		// Draw the current sections name as a psuedo-header
-		self
-			.emoji_legions
-			.get(section)
-			.map(|grouped| div().text_sm().font_semibold().child(format!("{:?}", grouped.group)))
+		self.emoji_legions.get(section).map(|grouped| {
+			div().text_lg().font_semibold().pb_2().pt_2().child(format!("{:?}", grouped.group))
+		})
 	}
 
 	/// Generate the relevant emoji for an index, as a struct to interpret
