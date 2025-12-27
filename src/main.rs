@@ -25,7 +25,7 @@ fn main() {
 	let app = Application::new();
 
 	app.run(|cx: &mut App| {
-		let bounds = Bounds::centered(None, size(px(450.0), px(450.0)), cx);
+		let bounds = Bounds::centered(None, size(px(550.0), px(550.0)), cx);
 
 		cx.open_window(
 			WindowOptions {

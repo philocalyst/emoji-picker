@@ -1,48 +1,17 @@
-use std::{path::PathBuf, rc::Rc};
-
-use emoji::{Emoji, EmojiEntry};
-use gpui::{Pixels, Size, size};
-use unicode_segmentation::UnicodeSegmentation;
+use emoji::EmojiEntry;
+use gpui::Pixels;
 
 use crate::SEARCHER;
 
 /// Calculates the number of emojis that fit per row based on container width
 pub(crate) fn calculate_emojis_per_row(container_width: f64, emoji_size: Pixels) -> usize {
+	// We're calculating this as based upon the container width as emojis are
+	// largely static, and we're handling layout by rows, not relying on native
+	// wrapping capabilities.
 	let emojis_per_row = (container_width / emoji_size.to_f64()).floor() as usize;
+
+	// There needs to be at least one emoji in a row, regardless of size.
 	emojis_per_row.max(1)
-}
-
-/// Returns an array of paths pointing to SVG's representing the various emoji
-/// categories
-pub(crate) fn get_bar_icons() -> Vec<PathBuf> {
-	// Rightmost words from your list
-	const DESIRED_CATAGORIES: [&str; 10] = [
-		"activity",         // activities
-		"rat",              // animals_and_nature
-		"component",        // component
-		"flag",             // flags
-		"utensils-crossed", // food_and_drink
-		"target",           // objects
-		"person-standing",  // people_and_body
-		"smile-plus",       // smileys_and_emotion
-		"shell",            // symbols
-		"ship",             // travel_and_places
-	];
-
-	let base = PathBuf::from("./lucide/icons");
-
-	DESIRED_CATAGORIES.iter().map(|name| base.join(format!("{name}.svg"))).collect()
-}
-
-/// Generates row sizes for the virtual list based on emoji count and layout
-pub(crate) fn generate_row_sizes(
-	emoji_count: usize,
-	emojis_per_row: usize,
-	container_width: f64,
-	emoji_size: Pixels,
-) -> Rc<Vec<Size<Pixels>>> {
-	let row_count = (emoji_count + emojis_per_row - 1) / emojis_per_row;
-	Rc::new((0..row_count).map(|_| size(container_width.into(), emoji_size)).collect())
 }
 
 /// Searches for emojis based on the provided text query

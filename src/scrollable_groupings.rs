@@ -10,7 +10,7 @@ pub(crate) struct GroupedEmojis {
 }
 
 pub(crate) struct EmojiListDelegate {
-	pub(crate) grouped_emojis: Vec<GroupedEmojis>,
+	pub(crate) emoji_legions:  Vec<GroupedEmojis>,
 	pub(crate) emojis_per_row: usize,
 	pub(crate) selected_index: Option<IndexPath>,
 	pub(crate) query:          String,
@@ -29,13 +29,13 @@ impl EmojiListDelegate {
 			}
 		}
 
-		Self { grouped_emojis: grouped, emojis_per_row, selected_index: None, query: String::new() }
+		Self { emoji_legions: grouped, emojis_per_row, selected_index: None, query: String::new() }
 	}
 
 	fn update_search(&mut self, query: &str) {
 		self.query = query.to_string();
 
-		self.grouped_emojis.clear();
+		self.emoji_legions.clear();
 
 		if query.is_empty() {
 			for group in emoji::Group::iter() {
@@ -43,7 +43,7 @@ impl EmojiListDelegate {
 					emoji::lookup_by_glyph::iter_emoji().filter(|e| e.emoji().group == group).collect();
 
 				if !group_emojis.is_empty() {
-					self.grouped_emojis.push(GroupedEmojis { group, emojis: group_emojis });
+					self.emoji_legions.push(GroupedEmojis { group, emojis: group_emojis });
 				}
 			}
 		} else {
@@ -54,7 +54,7 @@ impl EmojiListDelegate {
 					filtered.iter().filter(|e| e.emoji().group == group).copied().collect();
 
 				if !group_emojis.is_empty() {
-					self.grouped_emojis.push(GroupedEmojis { group, emojis: group_emojis });
+					self.emoji_legions.push(GroupedEmojis { group, emojis: group_emojis });
 				}
 			}
 		}
@@ -64,13 +64,16 @@ impl EmojiListDelegate {
 impl ListDelegate for EmojiListDelegate {
 	type Item = EmojiRow;
 
-	fn sections_count(&self, _: &App) -> usize { self.grouped_emojis.len() }
+	fn sections_count(&self, _: &App) -> usize { self.emoji_legions.len() }
 
 	fn items_count(&self, section: usize, _: &App) -> usize {
-		if section >= self.grouped_emojis.len() {
-			return 0;
-		}
-		let emoji_count = self.grouped_emojis[section].emojis.len();
+		let emoji_count = self
+			.emoji_legions
+			.get(section)
+			.expect("Section numbers are generated at the same time as grouping creations")
+			.emojis
+			.len();
+
 		(emoji_count + self.emojis_per_row - 1) / self.emojis_per_row
 	}
 
@@ -80,13 +83,15 @@ impl ListDelegate for EmojiListDelegate {
 		_: &mut Window,
 		_: &mut App,
 	) -> Option<impl IntoElement> {
-		self.grouped_emojis.get(section).map(|grouped| {
-			div().px_2().py_1().text_sm().font_semibold().child(format!("{:?}", grouped.group))
-		})
+		// Draw the current sections name as a psuedo-header
+		self
+			.emoji_legions
+			.get(section)
+			.map(|grouped| div().text_sm().font_semibold().child(format!("{:?}", grouped.group)))
 	}
 
 	fn render_item(&self, ix: IndexPath, _: &mut Window, _: &mut App) -> Option<Self::Item> {
-		let section_emojis = &self.grouped_emojis.get(ix.section)?.emojis;
+		let section_emojis = &self.emoji_legions.get(ix.section)?.emojis;
 		let start_idx = ix.row * self.emojis_per_row;
 		let end_idx = (start_idx + self.emojis_per_row).min(section_emojis.len());
 
