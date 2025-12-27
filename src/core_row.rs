@@ -23,10 +23,11 @@ impl RenderOnce for EmojiRow {
 			div()
 				.id(emoji.emoji().glyph)
 				.hover(|div| div.bg(cx.theme().accent.opacity(1.0)))
-				.on_click(|click_event, window, app| {
+				.on_click(|_click_event, _window, _app| {
 					espanso_inject::get_injector(espanso_inject::InjectorCreationOptions::default())
 						.unwrap()
-						.send_string("hi", espanso_inject::InjectionOptions::default());
+						.send_string("hi", espanso_inject::InjectionOptions::default())
+						.expect("Shouldn't fail, I trust Espanso");
 				})
 				.cursor_pointer()
 				.child(emoji.emoji().glyph)
