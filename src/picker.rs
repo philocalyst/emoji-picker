@@ -2,15 +2,19 @@ use emoji::EmojiEntry;
 use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Subscription, Window, prelude::*};
 use gpui_component::{IndexPath, green_500, list::{List, ListEvent, ListState}, v_flex};
 
-use crate::{scrollable_groupings::EmojiListDelegate, utilities::calculate_emojis_per_row};
+use crate::{grouped_grid::EmojiListDelegate, utilities::calculate_emojis_per_row};
 
 pub(crate) struct Picker {
+	/// The current state of focus
 	pub(crate) focus_handle: FocusHandle,
 
 	/// The position of the selected emoji, if there is one
 	pub(crate) selected_emoji: Option<usize>,
-	pub(crate) list_state:     Entity<ListState<EmojiListDelegate>>,
-	_subscription:             Subscription,
+
+	/// The state of the list
+	pub(crate) list_state: Entity<ListState<EmojiListDelegate>>,
+
+	_subscription: Subscription,
 }
 
 // Required boilerplate implementation
@@ -81,6 +85,7 @@ impl Picker {
 		Some(global_idx)
 	}
 
+	// Get an emoji at an absolute, global index (no index path)
 	fn get_emoji_at_index(&self, idx: usize, cx: &App) -> Option<&'static EmojiEntry> {
 		let delegate = self.list_state.read(cx).delegate();
 

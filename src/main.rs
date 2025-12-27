@@ -6,10 +6,10 @@ use gpui_component::{Root, input::{InputEvent, InputState}, theme::Theme};
 
 use crate::picker::Picker;
 
-mod emojis_in_a_row;
+mod core_row;
+mod grouped_grid;
 mod input;
 mod picker;
-mod scrollable_groupings;
 mod utilities;
 mod variant_overlay;
 

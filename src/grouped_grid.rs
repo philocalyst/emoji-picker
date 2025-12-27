@@ -2,7 +2,7 @@ use emoji::{EmojiEntry, Group};
 use gpui::{App, Context, IntoElement, ParentElement, RenderOnce, Styled, Task, Window, div};
 use gpui_component::{IndexPath, Selectable, StyledExt, h_flex, list::{ListDelegate, ListState}};
 
-use crate::{emojis_in_a_row::EmojiRow, utilities::search_emojis};
+use crate::{core_row::EmojiRow, utilities::search_emojis};
 
 pub(crate) struct GroupedEmojis {
 	pub(crate) group:  Group,
