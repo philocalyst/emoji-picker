@@ -8,6 +8,7 @@ use crate::picker::Picker;
 
 mod core_row;
 mod grouped_grid;
+mod listgistics;
 mod picker;
 mod utilities;
 mod variant_overlay;

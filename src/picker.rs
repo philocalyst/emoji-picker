@@ -1,8 +1,8 @@
 use emoji::EmojiEntry;
 use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Subscription, Window, prelude::*};
-use gpui_component::{IndexPath, green_500, list::{List, ListEvent, ListState}, v_flex};
+use gpui_component::{IndexPath, gray_800, list::{List, ListEvent, ListState}, v_flex};
 
-use crate::{grouped_grid::EmojiListDelegate, utilities::calculate_emojis_per_row};
+use crate::{listgistics::EmojiListDelegate, utilities::calculate_emojis_per_row};
 
 pub(crate) struct Picker {
 	/// The current state of focus
@@ -98,6 +98,6 @@ impl Render for Picker {
 		v_flex()
 			.track_focus(&self.focus_handle(cx))
 			.size_full()
-			.child(List::new(&self.list_state).bg(green_500()).p_3().flex_1())
+			.child(List::new(&self.list_state).bg(gray_800()).p_3().flex_1())
 	}
 }
