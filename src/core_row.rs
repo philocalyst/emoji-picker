@@ -1,6 +1,6 @@
 use emoji::EmojiEntry;
-use gpui::{App, Edges, InteractiveElement, IntoElement, ParentElement, RenderOnce, StatefulInteractiveElement, Styled, Window, div, prelude::FluentBuilder};
-use gpui_component::{ActiveTheme, Selectable, StyledExt, h_flex};
+use gpui::{App, InteractiveElement, IntoElement, ParentElement, RenderOnce, StatefulInteractiveElement, Styled, Window, div};
+pub(crate) use gpui_component::{ActiveTheme, Selectable, h_flex};
 
 #[derive(IntoElement)]
 pub(crate) struct EmojiRow {

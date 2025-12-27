@@ -1,4 +1,4 @@
-use emoji::{Emoji, EmojiEntry};
+use emoji::EmojiEntry;
 use gpui::{IntoElement, ParentElement, Styled, div, white};
 
 /// Renders the overlay showing skin tone variants for a selected emoji

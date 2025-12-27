@@ -1,6 +1,6 @@
 use emoji::{EmojiEntry, Group};
-use gpui::{App, Context, IntoElement, ParentElement, RenderOnce, Styled, Task, Window, div};
-use gpui_component::{IndexPath, Selectable, StyledExt, h_flex, list::{ListDelegate, ListState}};
+use gpui::{App, Context, IntoElement, ParentElement, Styled, Task, Window, div};
+use gpui_component::{IndexPath, StyledExt, list::{ListDelegate, ListState}};
 
 use crate::{core_row::EmojiRow, utilities::search_emojis};
 
