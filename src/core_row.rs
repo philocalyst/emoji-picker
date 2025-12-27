@@ -4,7 +4,10 @@ pub(crate) use gpui_component::{ActiveTheme, Selectable, h_flex};
 
 #[derive(IntoElement)]
 pub(crate) struct EmojiRow {
-	pub(crate) emojis:   Vec<&'static EmojiEntry>,
+	/// The Emoji contained by the row
+	pub(crate) emojis: Vec<&'static EmojiEntry>,
+
+	/// Whether the row has been selected
 	pub(crate) selected: bool,
 }
 
@@ -21,8 +24,8 @@ impl RenderOnce for EmojiRow {
 	fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
 		h_flex().gap_2().children(self.emojis.iter().map(|emoji| {
 			div()
-				.id(emoji.emoji().glyph)
-				.hover(|div| div.bg(cx.theme().accent.opacity(1.0)))
+				.id(emoji.emoji().glyph) // ID is required for jump points
+				.hover(|div| div.bg(cx.theme().accent.opacity(1.0))) // Bring out the background for hover contrast
 				.on_click(|_click_event, _window, _app| {
 					espanso_inject::get_injector(espanso_inject::InjectorCreationOptions::default())
 						.unwrap()

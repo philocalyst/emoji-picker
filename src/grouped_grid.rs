@@ -2,7 +2,7 @@ use emoji::{EmojiEntry, Group};
 use gpui::{App, Context, IntoElement, ParentElement, Styled, Task, Window, div};
 use gpui_component::{IndexPath, StyledExt, list::{ListDelegate, ListState}};
 
-use crate::{core_row::EmojiRow, utilities::search_emojis};
+use crate::{core_row::EmojiRow, utilities::{grouped_emojis, search_emojis}};
 
 pub(crate) struct GroupedEmojis {
 	pub(crate) group:  Group,
@@ -18,18 +18,12 @@ pub(crate) struct EmojiListDelegate {
 
 impl EmojiListDelegate {
 	pub(crate) fn new(emojis_per_row: usize) -> Self {
-		let mut grouped = Vec::new();
-
-		for group in emoji::Group::iter() {
-			let group_emojis: Vec<&'static EmojiEntry> =
-				emoji::lookup_by_glyph::iter_emoji().filter(|e| e.emoji().group == group).collect();
-
-			if !group_emojis.is_empty() {
-				grouped.push(GroupedEmojis { group, emojis: group_emojis });
-			}
+		Self {
+			emoji_legions: grouped_emojis(),
+			emojis_per_row,
+			selected_index: None,
+			query: String::new(),
 		}
-
-		Self { emoji_legions: grouped, emojis_per_row, selected_index: None, query: String::new() }
 	}
 
 	fn update_search(&mut self, query: &str) {
@@ -38,14 +32,7 @@ impl EmojiListDelegate {
 		self.emoji_legions.clear();
 
 		if query.is_empty() {
-			for group in emoji::Group::iter() {
-				let group_emojis: Vec<&'static EmojiEntry> =
-					emoji::lookup_by_glyph::iter_emoji().filter(|e| e.emoji().group == group).collect();
-
-				if !group_emojis.is_empty() {
-					self.emoji_legions.push(GroupedEmojis { group, emojis: group_emojis });
-				}
-			}
+			self.emoji_legions = grouped_emojis();
 		} else {
 			let filtered = search_emojis(query);
 
@@ -66,6 +53,7 @@ impl ListDelegate for EmojiListDelegate {
 
 	fn sections_count(&self, _: &App) -> usize { self.emoji_legions.len() }
 
+	/// Get the total amount of items (emojis)
 	fn items_count(&self, section: usize, _: &App) -> usize {
 		let emoji_count = self
 			.emoji_legions
@@ -90,6 +78,7 @@ impl ListDelegate for EmojiListDelegate {
 			.map(|grouped| div().text_sm().font_semibold().child(format!("{:?}", grouped.group)))
 	}
 
+	/// Generate the relevant emoji for an index, as a struct to interpret
 	fn render_item(&self, ix: IndexPath, _: &mut Window, _: &mut App) -> Option<Self::Item> {
 		let section_emojis = &self.emoji_legions.get(ix.section)?.emojis;
 		let start_idx = ix.row * self.emojis_per_row;
@@ -104,6 +93,7 @@ impl ListDelegate for EmojiListDelegate {
 		Some(EmojiRow { emojis: row_emojis, selected: self.selected_index == Some(ix) })
 	}
 
+	/// Set the index and notify the context
 	fn set_selected_index(
 		&mut self,
 		ix: Option<IndexPath>,
@@ -118,6 +108,7 @@ impl ListDelegate for EmojiListDelegate {
 		println!("Confirmed with secondary: {}", secondary);
 	}
 
+	/// Search, notify the context, and create a task to consume for the search
 	fn perform_search(
 		&mut self,
 		query: &str,
