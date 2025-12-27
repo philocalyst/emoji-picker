@@ -20,45 +20,49 @@ static EMOJI_DATA: LazyLock<emoji_search::types::EmojiData> =
 static SEARCHER: LazyLock<emoji_search::EmojiSearcher> =
 	LazyLock::new(|| emoji_search::EmojiSearcher::new(&*EMOJI_DATA, None));
 
+fn initialize(cx: &mut App) {
+	let bounds = Bounds::centered(None, size(px(550.0), px(550.0)), cx);
+
+	cx.open_window(
+		WindowOptions {
+			titlebar: None,
+			window_bounds: Some(WindowBounds::Windowed(bounds)),
+			..Default::default()
+		},
+		|window, cx| {
+			// Set the theme before creating Root
+			cx.set_global(Theme::default());
+			gpui_component::init(cx);
+
+			let input_state = cx.new(|cx| InputState::new(window, cx).placeholder("Type here..."));
+
+			window.focus(&input_state.read(cx).focus_handle(cx));
+
+			window.activate_window();
+			// Subscribe with correct closure signature
+			cx.subscribe(
+				&input_state,
+				|_subscriber: Entity<InputState>, _event: &InputEvent, cx: &mut App| {
+					let text = _subscriber.read(cx);
+					eprintln!("Input event: {:?}", text.text());
+				},
+			)
+			.detach();
+
+			let input_example = cx.new(|cx| Picker::new(window, cx));
+
+			// Wrap InputExample in Root - convert to AnyView
+			cx.new(|cx| Root::new(AnyView::from(input_example), window, cx))
+		},
+	)
+	.unwrap();
+}
+
 fn main() {
 	let app = Application::new();
 
 	app.run(|cx: &mut App| {
-		let bounds = Bounds::centered(None, size(px(550.0), px(550.0)), cx);
-
-		cx.open_window(
-			WindowOptions {
-				titlebar: None,
-				window_bounds: Some(WindowBounds::Windowed(bounds)),
-				..Default::default()
-			},
-			|window, cx| {
-				// Set the theme before creating Root
-				cx.set_global(Theme::default());
-				gpui_component::init(cx);
-
-				let input_state = cx.new(|cx| InputState::new(window, cx).placeholder("Type here..."));
-
-				window.focus(&input_state.read(cx).focus_handle(cx));
-
-				window.activate_window();
-				// Subscribe with correct closure signature
-				cx.subscribe(
-					&input_state,
-					|_subscriber: Entity<InputState>, _event: &InputEvent, cx: &mut App| {
-						let text = _subscriber.read(cx);
-						eprintln!("Input event: {:?}", text.text());
-					},
-				)
-				.detach();
-
-				let input_example = cx.new(|cx| Picker::new(window, cx));
-
-				// Wrap InputExample in Root - convert to AnyView
-				cx.new(|cx| Root::new(AnyView::from(input_example), window, cx))
-			},
-		)
-		.unwrap();
+		initialize(cx);
 
 		cx.on_action(|_: &Quit, cx| {
 			inject_text();
