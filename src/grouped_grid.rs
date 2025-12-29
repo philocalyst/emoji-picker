@@ -50,7 +50,11 @@ impl ListDelegate for EmojiListDelegate {
 
 		let row_emojis = section_emojis[start_idx..end_idx].to_vec();
 
-		Some(EmojiRow { emojis: row_emojis, selected: self.selected_index == Some(ix) })
+		Some(EmojiRow {
+			emojis:    row_emojis,
+			selected:  self.selected_index == Some(ix),
+			font_size: self.emoji_size,
+		})
 	}
 
 	/// Set the index and notify the context

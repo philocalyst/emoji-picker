@@ -32,7 +32,7 @@ impl Picker {
 		let emojis_per_row = calculate_emojis_per_row(container_width, default_emoji_size);
 
 		// Initialize the list
-		let delegate = EmojiListDelegate::new(emojis_per_row);
+		let delegate = EmojiListDelegate::new(emojis_per_row, default_emoji_size);
 		let list_state = cx.new(|cx| ListState::new(delegate, window, cx).searchable(true));
 
 		// Handle the events on the list

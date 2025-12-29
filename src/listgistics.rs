@@ -1,4 +1,5 @@
 pub(crate) use emoji::EmojiEntry;
+use gpui::Pixels;
 use gpui_component::IndexPath;
 
 use crate::{grouped_grid::GroupedEmojis, utilities::{grouped_emojis, search_emojis}};
@@ -8,12 +9,14 @@ pub(crate) struct EmojiListDelegate {
 	pub(crate) emojis_per_row: usize,
 	pub(crate) selected_index: Option<IndexPath>,
 	pub(crate) query:          String,
+	pub(crate) emoji_size:     Pixels,
 }
 
 impl EmojiListDelegate {
-	pub(crate) fn new(emojis_per_row: usize) -> Self {
+	pub(crate) fn new(emojis_per_row: usize, emoji_size: Pixels) -> Self {
 		Self {
 			emoji_legions: grouped_emojis(),
+			emoji_size,
 			emojis_per_row,
 			selected_index: None,
 			query: String::new(),
