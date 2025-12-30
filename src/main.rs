@@ -1,7 +1,7 @@
 use std::{process::Command, sync::LazyLock, thread::sleep, time::Duration};
 
 use emoji_search;
-use gpui::{AnyView, App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowOptions, actions, prelude::*, px, size};
+use gpui::{AnyView, App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, prelude::*, px, size};
 use gpui_component::{PixelsExt, Root, input::{InputEvent, InputState}, theme::Theme};
 
 use crate::picker::Picker;
@@ -36,6 +36,7 @@ fn initialize(cx: &mut App) {
 	cx.open_window(
 		WindowOptions {
 			titlebar: None,
+			kind: WindowKind::PopUp,
 			window_bounds: Some(WindowBounds::Windowed(bounds)),
 			..Default::default()
 		},
@@ -79,16 +80,12 @@ fn main() {
 			cx.quit();
 		});
 		cx.bind_keys([KeyBinding::new("cmd-q", Quit, None)]);
+		cx.bind_keys([KeyBinding::new("cmd-w", Quit, None)]);
 	});
 }
 
 fn inject_text() {
-	let output = Command::new("osascript")
-		.args(&["-e", &format!("tell application \"{}\" to activate", "ghostty")])
-		.output()
-		.unwrap();
-
-	sleep(Duration::from_secs(1));
+	sleep(Duration::from_secs(2));
 
 	espanso_inject::get_injector(espanso_inject::InjectorCreationOptions::default())
 		.unwrap()
