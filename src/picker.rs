@@ -2,7 +2,7 @@ use emoji::EmojiEntry;
 use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription, Window, prelude::*};
 use gpui_component::{IndexPath, gray_800, list::{List, ListEvent, ListState}, v_flex};
 
-use crate::{listgistics::EmojiListDelegate, utilities::calculate_emojis_per_row};
+use crate::{listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
 
 pub(crate) struct Picker {
 	/// The current state of focus
@@ -31,14 +31,10 @@ impl Picker {
 
 		// The number of emojis per row is responsive to the container width,
 		// but clamped to a reasonable range.
-		let emojis_per_row = calculate_emojis_per_row(container_width, rem_size);
-
-		// The emoji size is then determined by the container width and the number of
-		// emojis per row.
-		let default_emoji_size = Pixels::from((container_width / emojis_per_row as f64) as f32);
+		let sizing = calculate_emoji_sizing(container_width, rem_size);
 
 		// Initialize the list
-		let delegate = EmojiListDelegate::new(emojis_per_row, default_emoji_size);
+		let delegate = EmojiListDelegate::new(sizing.emojis_per_row, sizing.emoji_size);
 		let list_state = cx.new(|cx| ListState::new(delegate, window, cx).searchable(true));
 
 		// Handle the events on the list
@@ -71,7 +67,7 @@ impl Picker {
 			focus_handle: cx.focus_handle(),
 			selected_emoji: None,
 			list_state,
-			padding: rem_size * 1.0,
+			padding: sizing.list_padding,
 			_subscription,
 		}
 	}
@@ -107,8 +103,9 @@ impl Picker {
 
 impl Render for Picker {
 	fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-		v_flex().track_focus(&self.focus_handle(cx)).size_full().child(
-			List::new(&self.list_state).scrollbar_visible(false).bg(gray_800()).p(self.padding).flex_1(),
-		)
+		v_flex()
+			.track_focus(&self.focus_handle(cx))
+			.size_full()
+			.child(List::new(&self.list_state).bg(gray_800()).p(self.padding).flex_1())
 	}
 }
