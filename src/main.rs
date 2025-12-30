@@ -1,4 +1,4 @@
-use std::{process::Command, sync::LazyLock, thread::sleep, time::Duration};
+use std::sync::LazyLock;
 
 use emoji_search;
 use gpui::{AnyView, App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, prelude::*, px, size};
@@ -12,6 +12,11 @@ mod listgistics;
 mod picker;
 mod utilities;
 mod variant_overlay;
+
+struct PickerHandle(Entity<Picker>);
+impl gpui::Global for PickerHandle {}
+
+actions!(picker, [JumpToSection]);
 
 actions!(text_input, [Quit,]);
 
@@ -50,6 +55,7 @@ fn initialize(cx: &mut App) {
 			window.focus(&input_state.read(cx).focus_handle(cx));
 
 			window.activate_window();
+
 			// Subscribe with correct closure signature
 			cx.subscribe(
 				&input_state,
@@ -61,6 +67,7 @@ fn initialize(cx: &mut App) {
 			.detach();
 
 			let input_example = cx.new(|cx| Picker::new(window, cx));
+			cx.set_global(PickerHandle(input_example.clone()));
 
 			// Wrap InputExample in Root - convert to AnyView
 			cx.new(|cx| Root::new(AnyView::from(input_example), window, cx))
@@ -79,14 +86,28 @@ fn main() {
 			inject_text();
 			cx.quit();
 		});
+
+		cx.on_action(|_: &JumpToSection, cx| {
+			// Get the entity from the global store
+			let picker_entity = cx.global::<PickerHandle>().0.clone();
+
+			if let Some(window_handle) = cx.active_window() {
+				window_handle
+					.update(cx, |_, window, cx| {
+						picker_entity.update(cx, |picker, cx| {
+							picker.jump_to_section(3, window, cx);
+						});
+					})
+					.unwrap();
+			}
+		});
+
 		cx.bind_keys([KeyBinding::new("cmd-q", Quit, None)]);
-		cx.bind_keys([KeyBinding::new("cmd-w", Quit, None)]);
+		cx.bind_keys([KeyBinding::new("cmd-l", JumpToSection, None)]);
 	});
 }
 
 fn inject_text() {
-	sleep(Duration::from_secs(2));
-
 	espanso_inject::get_injector(espanso_inject::InjectorCreationOptions::default())
 		.unwrap()
 		.send_string("🌞", espanso_inject::InjectionOptions::default())
