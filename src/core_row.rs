@@ -27,7 +27,7 @@ impl Selectable for EmojiRow {
 impl RenderOnce for EmojiRow {
 	fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
 		h_flex().children(self.emojis.iter().map(|emoji| {
-			div().p_1()
+			div().text_size(self.font_size).p_1()
 				.id(emoji.emoji().glyph) // ID is required for jump points
 				.hover(|div| div.bg(cx.theme().accent.opacity(0.7))) // Bring out the background for hover contrast
 				.on_click(|_click_event, _window, _app| {
