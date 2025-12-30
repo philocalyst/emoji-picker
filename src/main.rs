@@ -1,7 +1,7 @@
 use std::sync::LazyLock;
 
 use emoji_search;
-use gpui::{AnyView, App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, prelude::*, px, size};
+use gpui::{AnyView, AnyWindowHandle, App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, prelude::*, px, size};
 use gpui_component::{PixelsExt, Root, input::{InputEvent, InputState}, theme::Theme};
 
 use crate::picker::Picker;
@@ -25,6 +25,13 @@ static EMOJI_DATA: LazyLock<emoji_search::types::EmojiData> =
 
 static SEARCHER: LazyLock<emoji_search::EmojiSearcher> =
 	LazyLock::new(|| emoji_search::EmojiSearcher::new(&*EMOJI_DATA, None));
+
+struct AppState {
+	picker: Entity<Picker>,
+	window: AnyWindowHandle,
+}
+
+impl gpui::Global for AppState {}
 
 fn initialize(cx: &mut App) {
 	let rem_size = 16.0;
@@ -66,11 +73,12 @@ fn initialize(cx: &mut App) {
 			)
 			.detach();
 
-			let input_example = cx.new(|cx| Picker::new(window, cx));
-			cx.set_global(PickerHandle(input_example.clone()));
+			let picker = cx.new(|cx| Picker::new(window, cx));
+
+			cx.set_global(AppState { picker: picker.clone(), window: window.window_handle() });
 
 			// Wrap InputExample in Root - convert to AnyView
-			cx.new(|cx| Root::new(AnyView::from(input_example), window, cx))
+			cx.new(|cx| Root::new(AnyView::from(picker), window, cx))
 		},
 	)
 	.unwrap();
@@ -89,17 +97,18 @@ fn main() {
 
 		cx.on_action(|_: &JumpToSection, cx| {
 			// Get the entity from the global store
-			let picker_entity = cx.global::<PickerHandle>().0.clone();
+			let state = cx.global::<AppState>();
+			let picker_entity = state.picker.clone();
+			let window_handle = state.window;
 
-			if let Some(window_handle) = cx.active_window() {
-				window_handle
-					.update(cx, |_, window, cx| {
-						picker_entity.update(cx, |picker, cx| {
-							picker.jump_to_section(3, window, cx);
-						});
-					})
-					.unwrap();
-			}
+			// Use the specific window handle instead of searching for the active one
+			window_handle
+				.update(cx, |_, window, cx| {
+					picker_entity.update(cx, |picker, cx| {
+						picker.jump_to_section(3, window, cx);
+					});
+				})
+				.unwrap();
 		});
 
 		cx.bind_keys([KeyBinding::new("cmd-q", Quit, None)]);
