@@ -106,6 +106,6 @@ impl Render for Picker {
 		v_flex()
 			.track_focus(&self.focus_handle(cx))
 			.size_full()
-			.child(List::new(&self.list_state).bg(gray_800()).p(self.padding).flex_1())
+			.child(List::new(&self.list_state).text_xl().bg(gray_800()).p(self.padding).flex_1())
 	}
 }
