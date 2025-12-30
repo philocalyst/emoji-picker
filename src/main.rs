@@ -57,23 +57,10 @@ fn initialize(cx: &mut App) {
 			cx.set_global(Theme::default());
 			gpui_component::init(cx);
 
-			let input_state = cx.new(|cx| InputState::new(window, cx).placeholder("Type here..."));
-
-			window.focus(&input_state.read(cx).focus_handle(cx));
-
-			window.activate_window();
-
-			// Subscribe with correct closure signature
-			cx.subscribe(
-				&input_state,
-				|_subscriber: Entity<InputState>, _event: &InputEvent, cx: &mut App| {
-					let text = _subscriber.read(cx);
-					eprintln!("Input event: {:?}", text.text());
-				},
-			)
-			.detach();
-
 			let picker = cx.new(|cx| Picker::new(window, cx));
+
+			window.focus(&picker.read(cx).focus_handle(cx));
+			window.activate_window();
 
 			cx.set_global(AppState { picker: picker.clone(), window: window.window_handle() });
 
