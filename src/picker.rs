@@ -1,5 +1,5 @@
 use emoji::EmojiEntry;
-use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription, Window, prelude::*};
+use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription, Window, prelude::*, white};
 use gpui_component::{IndexPath, gray_800, list::{List, ListEvent, ListState}, v_flex};
 
 use crate::{listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
@@ -104,8 +104,13 @@ impl Picker {
 impl Render for Picker {
 	fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
 		v_flex()
+			.bg(gray_800())
+			.text_color(white())
+			.p_1()
 			.track_focus(&self.focus_handle(cx))
 			.size_full()
-			.child(List::new(&self.list_state).text_xl().bg(gray_800()).p(self.padding).flex_1())
+			.child(
+				List::new(&self.list_state).scrollbar_visible(false).text_xl().p(self.padding).flex_1(),
+			)
 	}
 }
