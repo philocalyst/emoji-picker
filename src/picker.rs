@@ -107,9 +107,8 @@ impl Picker {
 
 impl Render for Picker {
 	fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-		v_flex()
-			.track_focus(&self.focus_handle(cx))
-			.size_full()
-			.child(List::new(&self.list_state).bg(gray_800()).p(self.padding).flex_1())
+		v_flex().track_focus(&self.focus_handle(cx)).size_full().child(
+			List::new(&self.list_state).scrollbar_visible(false).bg(gray_800()).p(self.padding).flex_1(),
+		)
 	}
 }
