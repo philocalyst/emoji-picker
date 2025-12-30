@@ -22,7 +22,7 @@ pub(crate) fn calculate_emoji_sizing(container_width: f64, rem_size: Pixels) -> 
 	// iteratively)
 	let list_padding_ratio = 0.25;
 
-	// Each emoji has p_1() padding which is 0.25rem on each side
+	// Each emoji has p_2() padding which is 0.25rem on each side
 	let emoji_padding_per_side = rem * 0.25;
 	let total_emoji_padding = emoji_padding_per_side * 2.0;
 
@@ -44,13 +44,13 @@ pub(crate) fn calculate_emoji_sizing(container_width: f64, rem_size: Pixels) -> 
 		let emoji_size = numerator / denominator;
 
 		// We want emoji size to be reasonable (between 1rem and 3rem)
-		if emoji_size >= rem * 1.5 && emoji_size <= rem * 4.0 {
+		if emoji_size >= rem * 1.9 && emoji_size <= rem * 4.0 {
 			best_size = EmojiSizing {
 				emojis_per_row,
 				emoji_size: Pixels::from(emoji_size as f32),
 				list_padding: Pixels::from((emoji_size * list_padding_ratio) as f32),
 			};
-		} else if emoji_size < rem * 1.5 {
+		} else if emoji_size < rem * 1.9 {
 			// Too small, we've gone too far
 			break;
 		}
