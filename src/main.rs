@@ -22,7 +22,7 @@ static SEARCHER: LazyLock<emoji_search::EmojiSearcher> =
 	LazyLock::new(|| emoji_search::EmojiSearcher::new(&*EMOJI_DATA, None));
 
 fn initialize(cx: &mut App) {
-	let rem_size = 26.0;
+	let rem_size = 16.0;
 
 	let displays = cx.displays();
 	let display = displays.first().expect("no display found");
