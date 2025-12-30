@@ -2,7 +2,7 @@ use std::{process::Command, sync::LazyLock, thread::sleep, time::Duration};
 
 use emoji_search;
 use gpui::{AnyView, App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowOptions, actions, prelude::*, px, size};
-use gpui_component::{Root, input::{InputEvent, InputState}, theme::Theme};
+use gpui_component::{PixelsExt, Root, input::{InputEvent, InputState}, theme::Theme};
 
 use crate::picker::Picker;
 
@@ -22,7 +22,16 @@ static SEARCHER: LazyLock<emoji_search::EmojiSearcher> =
 	LazyLock::new(|| emoji_search::EmojiSearcher::new(&*EMOJI_DATA, None));
 
 fn initialize(cx: &mut App) {
-	let bounds = Bounds::centered(None, size(px(550.0), px(550.0)), cx);
+	let rem_size = 26.0;
+
+	let displays = cx.displays();
+	let display = displays.first().expect("no display found");
+	let display_size = display.bounds().size;
+
+	let initial_width = (display_size.width.as_f32() * 0.25) + (rem_size * 2.0);
+	let initial_height = (display_size.height.as_f32() * 0.4) + (rem_size * 4.0);
+
+	let bounds = Bounds::centered(None, size(px(initial_width), px(initial_height)), cx);
 
 	cx.open_window(
 		WindowOptions {

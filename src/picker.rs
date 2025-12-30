@@ -1,5 +1,5 @@
 use emoji::EmojiEntry;
-use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Subscription, Window, prelude::*};
+use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription, Window, prelude::*};
 use gpui_component::{IndexPath, gray_800, list::{List, ListEvent, ListState}, v_flex};
 
 use crate::{listgistics::EmojiListDelegate, utilities::calculate_emojis_per_row};
@@ -14,6 +14,8 @@ pub(crate) struct Picker {
 	/// The state of the list
 	pub(crate) list_state: Entity<ListState<EmojiListDelegate>>,
 
+	padding: Pixels,
+
 	_subscription: Subscription,
 }
 
@@ -25,11 +27,15 @@ impl Focusable for Picker {
 impl Picker {
 	pub fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
 		let container_width = window.bounds().size.width.to_f64();
+		let rem_size = window.rem_size();
 
-		// Trying to base the emoji size off of the text size for accessiblity reasons,
-		// and because emojis are really just... text
-		let default_emoji_size = window.rem_size() * 2.0;
-		let emojis_per_row = calculate_emojis_per_row(container_width, default_emoji_size);
+		// The number of emojis per row is responsive to the container width,
+		// but clamped to a reasonable range.
+		let emojis_per_row = calculate_emojis_per_row(container_width, rem_size);
+
+		// The emoji size is then determined by the container width and the number of
+		// emojis per row.
+		let default_emoji_size = Pixels::from((container_width / emojis_per_row as f64) as f32);
 
 		// Initialize the list
 		let delegate = EmojiListDelegate::new(emojis_per_row, default_emoji_size);
@@ -61,7 +67,13 @@ impl Picker {
 			}
 		});
 
-		Self { focus_handle: cx.focus_handle(), selected_emoji: None, list_state, _subscription }
+		Self {
+			focus_handle: cx.focus_handle(),
+			selected_emoji: None,
+			list_state,
+			padding: default_emoji_size * 0.25,
+			_subscription,
+		}
 	}
 
 	fn index_path_to_emoji_index(&self, ix: IndexPath, cx: &App) -> Option<usize> {
@@ -98,6 +110,6 @@ impl Render for Picker {
 		v_flex()
 			.track_focus(&self.focus_handle(cx))
 			.size_full()
-			.child(List::new(&self.list_state).bg(gray_800()).p_3().flex_1())
+			.child(List::new(&self.list_state).bg(gray_800()).p(self.padding).flex_1())
 	}
 }

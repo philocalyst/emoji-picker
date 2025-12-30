@@ -4,14 +4,18 @@ use gpui::Pixels;
 use crate::{SEARCHER, grouped_grid::GroupedEmojis};
 
 /// Calculates the number of emojis that fit per row based on container width
-pub(crate) fn calculate_emojis_per_row(container_width: f64, emoji_size: Pixels) -> usize {
+pub(crate) fn calculate_emojis_per_row(container_width: f64, rem_size: Pixels) -> usize {
 	// We're calculating this as based upon the container width as emojis are
 	// largely static, and we're handling layout by rows, not relying on native
 	// wrapping capabilities.
-	let emojis_per_row = (container_width / emoji_size.to_f64()).floor() as usize;
-
+	let base_emoji_width = rem_size.to_f64() * 1.5; 
+    let ideal_emojis_per_row = (container_width / base_emoji_width).floor() as usize;
+    
 	// There needs to be at least one emoji in a row, regardless of size.
-	emojis_per_row.max(1)
+	const MIN_EMOJIS_PER_ROW: usize = 8;
+    const MAX_EMOJIS_PER_ROW: usize = 20;
+    
+	ideal_emojis_per_row.clamp(MIN_EMOJIS_PER_ROW, MAX_EMOJIS_PER_ROW)
 }
 
 /// Generate the grouped emoji vector that the application is based upon.
