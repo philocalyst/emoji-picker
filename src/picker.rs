@@ -71,7 +71,7 @@ impl Picker {
 			focus_handle: cx.focus_handle(),
 			selected_emoji: None,
 			list_state,
-			padding: default_emoji_size * 0.25,
+			padding: rem_size * 1.0,
 			_subscription,
 		}
 	}

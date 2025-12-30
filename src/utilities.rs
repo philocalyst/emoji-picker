@@ -5,16 +5,29 @@ use crate::{SEARCHER, grouped_grid::GroupedEmojis};
 
 /// Calculates the number of emojis that fit per row based on container width
 pub(crate) fn calculate_emojis_per_row(container_width: f64, rem_size: Pixels) -> usize {
-	// We're calculating this as based upon the container width as emojis are
-	// largely static, and we're handling layout by rows, not relying on native
-	// wrapping capabilities.
-	let base_emoji_width = rem_size.to_f64() * 1.5; 
-    let ideal_emojis_per_row = (container_width / base_emoji_width).floor() as usize;
-    
-	// There needs to be at least one emoji in a row, regardless of size.
+	let rem = rem_size.to_f64();
+
+	// Outer padding for the list (left and right), now 1rem each side from
+	// picker.rs
+	let outer_padding = rem * 2.0;
+
+	// Effective width available for all emoji items.
+	let effective_width = container_width - outer_padding;
+
+	// Each emoji item has padding from p_1(). Assuming p_1 is 0.25rem on each side.
+	let inner_padding_per_emoji = rem * 0.5;
+
+	// Ideal size of an emoji glyph. From previous implementation.
+	let base_emoji_glyph_size = rem * 1.5;
+
+	// Total width of one emoji item including its own padding.
+	let total_width_per_emoji = base_emoji_glyph_size + inner_padding_per_emoji;
+
+	let ideal_emojis_per_row = (effective_width / total_width_per_emoji).ceil() as usize;
+
 	const MIN_EMOJIS_PER_ROW: usize = 8;
-    const MAX_EMOJIS_PER_ROW: usize = 20;
-    
+	const MAX_EMOJIS_PER_ROW: usize = 20;
+
 	ideal_emojis_per_row.clamp(MIN_EMOJIS_PER_ROW, MAX_EMOJIS_PER_ROW)
 }
 
