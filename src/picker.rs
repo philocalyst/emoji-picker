@@ -99,6 +99,17 @@ impl Picker {
 
 		delegate.emoji_legions.iter().flat_map(|group| &group.emojis).nth(idx).copied()
 	}
+
+	pub(crate) fn jump_to_section(&self, section: usize, window: &mut gpui::Window, cx: &mut App) {
+		cx.update_entity(&self.list_state, |list, cx| {
+			list.scroll_to_item(
+				IndexPath { section, row: 0, column: 0 },
+				gpui::ScrollStrategy::Top,
+				window,
+				cx,
+			);
+		});
+	}
 }
 
 impl Render for Picker {
