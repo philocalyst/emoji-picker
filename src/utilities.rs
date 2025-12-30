@@ -3,32 +3,60 @@ use gpui::Pixels;
 
 use crate::{SEARCHER, grouped_grid::GroupedEmojis};
 
+/// Calculates emoji sizing parameters to prevent overflow
+pub(crate) struct EmojiSizing {
+	pub emojis_per_row: usize,
+	pub emoji_size:     Pixels,
+	pub list_padding:   Pixels,
+}
+
 /// Calculates the number of emojis that fit per row based on container width
-pub(crate) fn calculate_emojis_per_row(container_width: f64, rem_size: Pixels) -> usize {
+/// Returns both the count and the proper emoji size to prevent overflow
+pub(crate) fn calculate_emoji_sizing(container_width: f64, rem_size: Pixels) -> EmojiSizing {
 	let rem = rem_size.to_f64();
-
-	// Outer padding for the list (left and right), now 1rem each side from
-	// picker.rs
-	let outer_padding = rem * 2.0;
-
-	// Effective width available for all emoji items.
-	let effective_width = container_width - outer_padding;
-
-	// Each emoji item has padding from p_1(). Assuming p_1 is 0.25rem on each side.
-	let inner_padding_per_emoji = rem * 0.5;
-
-	// Ideal size of an emoji glyph. From previous implementation.
-	let base_emoji_glyph_size = rem * 1.5;
-
-	// Total width of one emoji item including its own padding.
-	let total_width_per_emoji = base_emoji_glyph_size + inner_padding_per_emoji;
-
-	let ideal_emojis_per_row = (effective_width / total_width_per_emoji).ceil() as usize;
 
 	const MIN_EMOJIS_PER_ROW: usize = 8;
 	const MAX_EMOJIS_PER_ROW: usize = 20;
 
-	ideal_emojis_per_row.clamp(MIN_EMOJIS_PER_ROW, MAX_EMOJIS_PER_ROW)
+	// Target list padding as a ratio of emoji size (we'll calculate this
+	// iteratively)
+	let list_padding_ratio = 0.25;
+
+	// Each emoji has p_1() padding which is 0.25rem on each side
+	let emoji_padding_per_side = rem * 0.25;
+	let total_emoji_padding = emoji_padding_per_side * 2.0;
+
+	// Try different emoji counts to find the best fit
+	let mut best_size = EmojiSizing {
+		emojis_per_row: MIN_EMOJIS_PER_ROW,
+		emoji_size:     Pixels::from(0.0),
+		list_padding:   Pixels::from(0.0),
+	};
+
+	for emojis_per_row in MIN_EMOJIS_PER_ROW..=MAX_EMOJIS_PER_ROW {
+		// Calculate what the emoji size would need to be for this count
+		// Formula: container_width = (list_padding * 2) + (emojis_per_row * (emoji_size
+		// + total_emoji_padding)) Where list_padding = emoji_size *
+		// list_padding_ratio
+
+		let denominator = (2.0 * list_padding_ratio) + emojis_per_row as f64;
+		let numerator = container_width - (emojis_per_row as f64 * total_emoji_padding);
+		let emoji_size = numerator / denominator;
+
+		// We want emoji size to be reasonable (between 1rem and 3rem)
+		if emoji_size >= rem * 1.5 && emoji_size <= rem * 4.0 {
+			best_size = EmojiSizing {
+				emojis_per_row,
+				emoji_size: Pixels::from(emoji_size as f32),
+				list_padding: Pixels::from((emoji_size * list_padding_ratio) as f32),
+			};
+		} else if emoji_size < rem * 1.5 {
+			// Too small, we've gone too far
+			break;
+		}
+	}
+
+	best_size
 }
 
 /// Generate the grouped emoji vector that the application is based upon.
