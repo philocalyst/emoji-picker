@@ -1,6 +1,9 @@
 use std::sync::LazyLock;
 
 use emoji_search;
+#[cfg(target_os = "macos")]
+use global_hotkey::hotkey::Modifiers;
+use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey}};
 use gpui::{AnyView, AnyWindowHandle, App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, prelude::*, px, size};
 use gpui_component::{PixelsExt, Root, input::{InputEvent, InputState}, theme::Theme};
 
@@ -72,7 +75,31 @@ fn initialize(cx: &mut App) {
 }
 
 fn main() {
+	let hotkey_manager = GlobalHotKeyManager::new().expect("Failed to create hotkey manager");
+
+	// Register Cmd+Shift+E (or Ctrl+Shift+E on Linux/Windows)
+	#[cfg(target_os = "macos")]
+	let modifiers = Modifiers::SUPER | Modifiers::SHIFT;
+	#[cfg(not(target_os = "macos"))]
+	let modifiers = Modifiers::CONTROL | Modifiers::SHIFT;
+
+	let hotkey = HotKey::new(Some(modifiers), Code::KeyE);
+	hotkey_manager.register(hotkey).expect("Failed to register hotkey");
+
 	let app = Application::new();
+
+	// Spawn thread to listen for global hotkey events
+	let (tx, rx) = std::sync::mpsc::channel();
+	std::thread::spawn(move || {
+		let receiver = GlobalHotKeyEvent::receiver();
+		loop {
+			if let Ok(event) = receiver.recv() {
+				if event.state == global_hotkey::HotKeyState::Pressed {
+					let _ = tx.send(());
+				}
+			}
+		}
+	});
 
 	app.run(|cx: &mut App| {
 		initialize(cx);
