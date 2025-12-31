@@ -145,33 +145,7 @@ fn main() {
 	});
 }
 
-fn inject_text(emoji: &str) {
-	// Use IMEKit to insert into the currently focused text field
-	match imekit::InputMethod::new() {
-		Ok(mut im) => {
-			// Wait for activation
-			std::thread::sleep(std::time::Duration::from_millis(50));
-
-			// Try to get the next event to see if we're activated
-			if let Some(event) = im.next_event() {
-				if let imekit::InputMethodEvent::Activate { serial } = event {
-					let _ = im.commit_string(emoji);
-					let _ = im.commit(serial);
-				}
-			} else {
-				// Fallback to espanso if IMEKit doesn't work
-				let _ = espanso_inject::get_injector(espanso_inject::InjectorCreationOptions::default())
-					.and_then(|injector| {
-						injector.send_string(emoji, espanso_inject::InjectionOptions::default())
-					});
-			}
-		}
-		Err(_) => {
-			// Fallback to espanso
-			let _ = espanso_inject::get_injector(espanso_inject::InjectorCreationOptions::default())
-				.and_then(|injector| {
-					injector.send_string(emoji, espanso_inject::InjectionOptions::default())
-				});
-		}
-	}
+fn insert_emoji(emoji: &str) {
+	espanso_inject::get_injector(espanso_inject::InjectorCreationOptions::default())
+		.and_then(|injector| injector.send_string(emoji, espanso_inject::InjectionOptions::default()));
 }
