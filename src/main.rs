@@ -1,4 +1,4 @@
-use std::sync::LazyLock;
+use std::{sync::LazyLock, time::Duration};
 
 use emoji_search;
 #[cfg(target_os = "macos")]
@@ -65,7 +65,10 @@ fn initialize(cx: &mut App) {
 			window.focus(&picker.read(cx).focus_handle(cx));
 			window.activate_window();
 
-			cx.set_global(AppState { picker: picker.clone(), window: window.window_handle() });
+			cx.set_global::<AppState>(AppState {
+				picker: picker.clone(),
+				window: window.window_handle(),
+			});
 
 			// Wrap InputExample in Root - convert to AnyView
 			cx.new(|cx| Root::new(AnyView::from(picker), window, cx))
@@ -102,31 +105,25 @@ fn main() {
 	});
 
 	app.run(|cx: &mut App| {
-		initialize(cx);
-
-		cx.on_action(|_: &Quit, cx| {
-			inject_text();
-			cx.quit();
-		});
-
-		cx.on_action(|_: &JumpToSection, cx| {
-			// Get the entity from the global store
-			let state = cx.global::<AppState>();
-			let picker_entity = state.picker.clone();
-			let window_handle = state.window;
-
-			// Use the specific window handle instead of searching for the active one
-			window_handle
-				.update(cx, |_, window, cx| {
-					picker_entity.update(cx, |picker, cx| {
-						picker.jump_to_section(3, window, cx);
-					});
-				})
-				.unwrap();
-		});
-
-		cx.bind_keys([KeyBinding::new("cmd-q", Quit, None)]);
-		cx.bind_keys([KeyBinding::new("cmd-l", JumpToSection, None)]);
+		// Poll for hotkey events
+		cx.spawn(|ctx: &mut gpui::AsyncApp| {
+			let ctx = ctx.clone();
+			async move {
+				loop {
+					// Watch with a 100ms buffer for kindness to the
+					// processer
+					if rx.try_recv().is_ok() {
+						ctx
+							.update(|cx| {
+								initialize(cx);
+							})
+							.expect("Context should be sturdy");
+					}
+					ctx.background_executor().timer(Duration::from_millis(100)).await;
+				}
+			}
+		})
+		.detach();
 	});
 }
 
