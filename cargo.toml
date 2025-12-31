@@ -11,3 +11,5 @@ gpui-component = "0.4.2"
 espanso-inject = {git = "https://github.com/espanso/espanso"}
 unicode-segmentation = "1.12.0"
 cocoa = "0.26.0"
+imekit = "0.1.0"
+global-hotkey = "0.7.0"
