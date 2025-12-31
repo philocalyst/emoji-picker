@@ -105,6 +105,24 @@ fn main() {
 	});
 
 	app.run(|cx: &mut App| {
+		cx.bind_keys([KeyBinding::new("cmd-l", JumpToSection, None)]);
+
+		cx.on_action(|_: &JumpToSection, cx| {
+			// Get the entity from the global store
+			let state = cx.global::<AppState>();
+			let picker_entity = state.picker.clone();
+			let window_handle = state.window;
+
+			// Use the specific window handle instead of searching for the active one
+			window_handle
+				.update(cx, |_, window, cx| {
+					picker_entity.update(cx, |picker, cx| {
+						picker.jump_to_section(3, window, cx);
+					});
+				})
+				.unwrap();
+		});
+
 		// Poll for hotkey events
 		cx.spawn(|ctx: &mut gpui::AsyncApp| {
 			let ctx = ctx.clone();
@@ -127,9 +145,33 @@ fn main() {
 	});
 }
 
-fn inject_text() {
-	espanso_inject::get_injector(espanso_inject::InjectorCreationOptions::default())
-		.unwrap()
-		.send_string("🌞", espanso_inject::InjectionOptions::default())
-		.unwrap();
+fn inject_text(emoji: &str) {
+	// Use IMEKit to insert into the currently focused text field
+	match imekit::InputMethod::new() {
+		Ok(mut im) => {
+			// Wait for activation
+			std::thread::sleep(std::time::Duration::from_millis(50));
+
+			// Try to get the next event to see if we're activated
+			if let Some(event) = im.next_event() {
+				if let imekit::InputMethodEvent::Activate { serial } = event {
+					let _ = im.commit_string(emoji);
+					let _ = im.commit(serial);
+				}
+			} else {
+				// Fallback to espanso if IMEKit doesn't work
+				let _ = espanso_inject::get_injector(espanso_inject::InjectorCreationOptions::default())
+					.and_then(|injector| {
+						injector.send_string(emoji, espanso_inject::InjectionOptions::default())
+					});
+			}
+		}
+		Err(_) => {
+			// Fallback to espanso
+			let _ = espanso_inject::get_injector(espanso_inject::InjectorCreationOptions::default())
+				.and_then(|injector| {
+					injector.send_string(emoji, espanso_inject::InjectionOptions::default())
+				});
+		}
+	}
 }
