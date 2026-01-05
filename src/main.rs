@@ -125,10 +125,15 @@ fn run_app() {
 		.unwrap();
 
 		cx.bind_keys([
-			KeyBinding::new("cmd-l", JumpToSection, None),
+			KeyBinding::new("super-q", Quit, None),
+			KeyBinding::new("super-w", Quit, None),
 			KeyBinding::new("super-right", SwitchToLight, None),
 			KeyBinding::new("super-left", SwitchToDark, None),
 		]);
+
+		cx.on_action(|_: &Quit, cx| {
+			cx.shutdown();
+		});
 
 		cx.on_action(|_: &SwitchToLight, cx| {
 			let window = cx.global::<AppState>().window;
