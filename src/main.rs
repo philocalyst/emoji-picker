@@ -1,5 +1,6 @@
-use std::{sync::LazyLock, time::Duration};
+use std::{fs::File, sync::LazyLock, time::Duration};
 
+use daemonize::Daemonize;
 use emoji_search;
 #[cfg(target_os = "macos")]
 use global_hotkey::hotkey::Modifiers;
@@ -37,6 +38,25 @@ struct AppState {
 impl gpui::Global for AppState {}
 
 fn main() {
+	// Set up daemon configuration
+	let stdout = File::create("/tmp/emoji-picker.out").unwrap();
+	let stderr = File::create("/tmp/emoji-picker.err").unwrap();
+
+	let daemonize = Daemonize::new()
+		.pid_file("/tmp/emoji-picker.pid")
+		.chown_pid_file(true)
+		.working_directory("/tmp")
+		.stdout(stdout)
+		.stderr(stderr)
+		.umask(0o027);
+
+	match daemonize.start() {
+		Ok(_) => run_app(),
+		Err(e) => eprintln!("Error daemonizing: {}", e),
+	}
+}
+
+fn run_app() {
 	let hotkey_manager = GlobalHotKeyManager::new().expect("Failed to create hotkey manager");
 
 	#[cfg(target_os = "macos")]
@@ -69,12 +89,10 @@ fn main() {
 			"/Users/philocalyst/Projects/emoji-picker/src/themes".into(),
 			cx,
 			move |_| {
-				println!("Themes loaded!");
+				eprintln!("Themes loaded!");
 			},
 		)
 		.unwrap();
-
-		let registry = ThemeRegistry::global(cx);
 
 		cx.bind_keys([
 			KeyBinding::new("cmd-l", JumpToSection, None),
@@ -155,7 +173,6 @@ fn initialize(cx: &mut App) {
 		|window, cx| {
 			gpui_component::init(cx);
 
-			// No need to call theme::init or watch_dir again - already done in main
 			cx.set_global(Theme::default());
 
 			let picker = cx.new(|cx| Picker::new(window, cx));
