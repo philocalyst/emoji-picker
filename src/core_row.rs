@@ -29,7 +29,7 @@ impl RenderOnce for EmojiRow {
 		h_flex().gap_2().children(self.emojis.iter().map(|emoji| {
 			div().text_size(self.font_size)
 				.id(emoji.emoji().glyph) // ID is required for jump points
-				.hover(|div| div.bg(cx.theme().accent.opacity(0.7))) // Bring out the background for hover contrast
+				.hover(|div| div.bg(cx.theme().accent)) // Bring out the background for hover contrast
 				.on_click(|_click_event, _window, _app| {
 					espanso_inject::get_injector(espanso_inject::InjectorCreationOptions::default())
 						.unwrap()

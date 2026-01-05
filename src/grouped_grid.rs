@@ -1,5 +1,5 @@
 use emoji::{EmojiEntry, Group};
-use gpui::{App, Context, Edges, IntoElement, ParentElement, Styled, Task, Window, div, px};
+use gpui::{App, Context, IntoElement, ParentElement, Styled, Task, Window, div};
 use gpui_component::{IndexPath, StyledExt, list::{ListDelegate, ListState}};
 
 use crate::{core_row::EmojiRow, listgistics::EmojiListDelegate};
