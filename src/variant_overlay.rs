@@ -1,8 +1,9 @@
 use emoji::EmojiEntry;
-use gpui::{IntoElement, ParentElement, Styled, div, white};
+use gpui::{App, IntoElement, ParentElement, Styled, div};
+use gpui_component::ActiveTheme;
 
 /// Renders the overlay showing skin tone variants for a selected emoji
-pub(crate) fn render(emoji: &EmojiEntry) -> impl IntoElement {
+pub(crate) fn render(emoji: &EmojiEntry, cx: &mut App) -> impl IntoElement {
 	if let Some(variants) = emoji.tones() {
 		div()
 			.absolute()
@@ -20,7 +21,7 @@ pub(crate) fn render(emoji: &EmojiEntry) -> impl IntoElement {
 					.shadow_lg()
 					.flex()
 					.flex_row()
-					.bg(white())
+					.bg(cx.theme().background)
 					.gap_2()
 					.children(variants.into_iter().map(|variant| div().child(variant.glyph))),
 			)
