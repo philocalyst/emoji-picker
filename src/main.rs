@@ -5,7 +5,7 @@ use emoji_search;
 use global_hotkey::hotkey::Modifiers;
 use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey}};
 use gpui::{AnyView, AnyWindowHandle, App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, prelude::*, px, size};
-use gpui_component::{PixelsExt, Root, theme::{Theme, ThemeMode}};
+use gpui_component::{ActiveTheme, PixelsExt, Root, ThemeRegistry, theme::{self, Theme, ThemeMode}};
 
 use crate::picker::Picker;
 
@@ -36,51 +36,9 @@ struct AppState {
 
 impl gpui::Global for AppState {}
 
-fn initialize(cx: &mut App) {
-	let rem_size = 16.0;
-
-	let displays = cx.displays();
-	let display = displays.first().expect("no display found");
-	let display_size = display.bounds().size;
-
-	let initial_width = (display_size.width.as_f32() * 0.25) + (rem_size * 2.0);
-	let initial_height = (display_size.height.as_f32() * 0.4) + (rem_size * 4.0);
-
-	let bounds = Bounds::centered(None, size(px(initial_width), px(initial_height)), cx);
-
-	cx.open_window(
-		WindowOptions {
-			titlebar: None,
-			kind: WindowKind::PopUp,
-			window_bounds: Some(WindowBounds::Windowed(bounds)),
-			..Default::default()
-		},
-		|window, cx| {
-			// Set the theme before creating Root
-			cx.set_global(Theme::default());
-			gpui_component::init(cx);
-
-			let picker = cx.new(|cx| Picker::new(window, cx));
-
-			window.focus(&picker.read(cx).focus_handle(cx));
-			window.activate_window();
-
-			cx.set_global::<AppState>(AppState {
-				picker: picker.clone(),
-				window: window.window_handle(),
-			});
-
-			// Wrap InputExample in Root - convert to AnyView
-			cx.new(|cx| Root::new(AnyView::from(picker), window, cx))
-		},
-	)
-	.unwrap();
-}
-
 fn main() {
 	let hotkey_manager = GlobalHotKeyManager::new().expect("Failed to create hotkey manager");
 
-	// Register Cmd+Shift+E (or Ctrl+Shift+E on Linux/Windows)
 	#[cfg(target_os = "macos")]
 	let modifiers = Modifiers::SUPER | Modifiers::SHIFT;
 	#[cfg(not(target_os = "macos"))]
@@ -91,7 +49,6 @@ fn main() {
 
 	let app = Application::new();
 
-	// Spawn thread to listen for global hotkey events
 	let (tx, rx) = std::sync::mpsc::channel();
 	std::thread::spawn(move || {
 		let receiver = GlobalHotKeyEvent::receiver();
@@ -105,6 +62,20 @@ fn main() {
 	});
 
 	app.run(|cx: &mut App| {
+		theme::init(cx);
+
+		// Set up custom themes directory
+		ThemeRegistry::watch_dir(
+			"/Users/philocalyst/Projects/emoji-picker/src/themes".into(),
+			cx,
+			move |_| {
+				println!("Themes loaded!");
+			},
+		)
+		.unwrap();
+
+		let registry = ThemeRegistry::global(cx);
+
 		cx.bind_keys([
 			KeyBinding::new("cmd-l", JumpToSection, None),
 			KeyBinding::new("super-right", SwitchToLight, None),
@@ -130,12 +101,10 @@ fn main() {
 		});
 
 		cx.on_action(|_: &JumpToSection, cx| {
-			// Get the entity from the global store
 			let state = cx.global::<AppState>();
 			let picker_entity = state.picker.clone();
 			let window_handle = state.window;
 
-			// Use the specific window handle instead of searching for the active one
 			window_handle
 				.update(cx, |_, window, cx| {
 					picker_entity.update(cx, |picker, cx| {
@@ -145,13 +114,10 @@ fn main() {
 				.unwrap();
 		});
 
-		// Poll for hotkey events
 		cx.spawn(|ctx: &mut gpui::AsyncApp| {
 			let ctx = ctx.clone();
 			async move {
 				loop {
-					// Watch with a 100ms buffer for kindness to the
-					// processer
 					if rx.try_recv().is_ok() {
 						ctx
 							.update(|cx| {
@@ -165,6 +131,47 @@ fn main() {
 		})
 		.detach();
 	});
+}
+
+fn initialize(cx: &mut App) {
+	let rem_size = 16.0;
+
+	let displays = cx.displays();
+	let display = displays.first().expect("no display found");
+	let display_size = display.bounds().size;
+
+	let initial_width = (display_size.width.as_f32() * 0.25) + (rem_size * 2.0);
+	let initial_height = (display_size.height.as_f32() * 0.4) + (rem_size * 4.0);
+
+	let bounds = Bounds::centered(None, size(px(initial_width), px(initial_height)), cx);
+
+	cx.open_window(
+		WindowOptions {
+			titlebar: None,
+			kind: WindowKind::PopUp,
+			window_bounds: Some(WindowBounds::Windowed(bounds)),
+			..Default::default()
+		},
+		|window, cx| {
+			gpui_component::init(cx);
+
+			// No need to call theme::init or watch_dir again - already done in main
+			cx.set_global(Theme::default());
+
+			let picker = cx.new(|cx| Picker::new(window, cx));
+
+			window.focus(&picker.read(cx).focus_handle(cx));
+			window.activate_window();
+
+			cx.set_global::<AppState>(AppState {
+				picker: picker.clone(),
+				window: window.window_handle(),
+			});
+
+			cx.new(|cx| Root::new(AnyView::from(picker), window, cx))
+		},
+	)
+	.unwrap();
 }
 
 fn insert_emoji(emoji: &str) {
