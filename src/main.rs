@@ -1,12 +1,12 @@
-use std::{fs::File, sync::LazyLock, time::Duration};
+use std::{env, sync::LazyLock, time::Duration};
 
-use daemonize::Daemonize;
 use emoji_search;
 #[cfg(target_os = "macos")]
 use global_hotkey::hotkey::Modifiers;
 use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey}};
 use gpui::{AnyView, AnyWindowHandle, App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, prelude::*, px, size};
 use gpui_component::{ActiveTheme, PixelsExt, Root, ThemeRegistry, theme::{self, Theme, ThemeMode}};
+use service_manager::*;
 
 use crate::picker::Picker;
 
@@ -38,21 +38,51 @@ struct AppState {
 impl gpui::Global for AppState {}
 
 fn main() {
-	// Set up daemon configuration
-	let stdout = File::create("/tmp/emoji-picker.out").unwrap();
-	let stderr = File::create("/tmp/emoji-picker.err").unwrap();
+	// Check if this instance is the service running in background
+	let args: Vec<String> = env::args().collect();
+	if args.contains(&"--service".to_string()) {
+		run_app();
+		return;
+	}
 
-	let daemonize = Daemonize::new()
-		.pid_file("/tmp/emoji-picker.pid")
-		.chown_pid_file(true)
-		.working_directory("/tmp")
-		.stdout(stdout)
-		.stderr(stderr)
-		.umask(0o027);
+	// Otherwise, we are the installer/launcher
+	install_and_start_service();
+}
 
-	match daemonize.start() {
-		Ok(_) => run_app(),
-		Err(e) => eprintln!("Error daemonizing: {}", e),
+fn install_and_start_service() {
+	let label: ServiceLabel = "com.philocalyst.emoji-picker".parse().unwrap();
+
+	// Detect platform native service manager
+	let mut manager = <dyn ServiceManager>::native().expect("Failed to detect management platform");
+
+	// Attempt to use User-level service (LaunchAgent on macOS)
+	// This prevents needing sudo and allows GUI interaction
+	if let Err(e) = manager.set_level(ServiceLevel::User) {
+		eprintln!("Warning: Could not set service level to User, defaulting to System: {}", e);
+	}
+
+	let exe_path = env::current_exe().expect("Failed to get executable path");
+
+	println!("Installing service...");
+	match manager.install(ServiceInstallCtx {
+		label:             label.clone(),
+		program:           exe_path,
+		args:              vec!["--service".into()], // Crucial: tell the service to run the app logic
+		contents:          None,
+		username:          None,
+		working_directory: None,
+		environment:       None,
+		autostart:         true,
+		restart_policy:    RestartPolicy::Always { delay_secs: Some(5) },
+	}) {
+		Ok(_) => println!("Service installed successfully."),
+		Err(e) => eprintln!("Note: Service install failed (it might already exist): {}", e),
+	}
+
+	println!("Starting service...");
+	match manager.start(ServiceStartCtx { label }) {
+		Ok(_) => println!("Service started successfully in the background."),
+		Err(e) => eprintln!("Failed to start service: {}", e),
 	}
 }
 
