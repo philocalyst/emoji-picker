@@ -5,7 +5,7 @@ use emoji_search;
 use global_hotkey::hotkey::Modifiers;
 use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey}};
 use gpui::{AnyView, AnyWindowHandle, App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, prelude::*, px, size};
-use gpui_component::{PixelsExt, Root, input::{InputEvent, InputState}, theme::Theme};
+use gpui_component::{PixelsExt, Root, theme::{Theme, ThemeMode}};
 
 use crate::picker::Picker;
 
@@ -20,7 +20,7 @@ struct PickerHandle(Entity<Picker>);
 impl gpui::Global for PickerHandle {}
 
 actions!(picker, [JumpToSection]);
-
+actions!(theme, [SwitchToLight, SwitchToDark]);
 actions!(text_input, [Quit,]);
 
 static EMOJI_DATA: LazyLock<emoji_search::types::EmojiData> =
@@ -105,7 +105,29 @@ fn main() {
 	});
 
 	app.run(|cx: &mut App| {
-		cx.bind_keys([KeyBinding::new("cmd-l", JumpToSection, None)]);
+		cx.bind_keys([
+			KeyBinding::new("cmd-l", JumpToSection, None),
+			KeyBinding::new("super-right", SwitchToLight, None),
+			KeyBinding::new("super-left", SwitchToDark, None),
+		]);
+
+		cx.on_action(|_: &SwitchToLight, cx| {
+			let window = cx.global::<AppState>().window;
+			window
+				.update(cx, |_, window, cx| {
+					Theme::change(ThemeMode::Light, Some(window), cx);
+				})
+				.unwrap();
+		});
+
+		cx.on_action(|_: &SwitchToDark, cx| {
+			let window = cx.global::<AppState>().window;
+			window
+				.update(cx, |_, window, cx| {
+					Theme::change(ThemeMode::Dark, Some(window), cx);
+				})
+				.unwrap();
+		});
 
 		cx.on_action(|_: &JumpToSection, cx| {
 			// Get the entity from the global store
