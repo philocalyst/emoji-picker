@@ -41,7 +41,9 @@ impl RenderOnce for EmojiRow {
 				.id(emoji_data.glyph)
 				.hover(move |div| div.bg(hover_bg))
 				.on_click(move |_click_event, _window, cx| {
-					cx.set_global::<SelectedEmoji>(SelectedEmoji(NonEmpty::new(emoji_data.clone())));
+					insert_emoji(emoji.emoji().glyph);
+
+					cx.shutdown();
 				})
 				.corner_radii(gpui::Corners::all(px(5f32)))
 				.cursor_pointer()
