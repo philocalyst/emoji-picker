@@ -140,6 +140,7 @@ fn run_app() {
 			KeyBinding::new("super-left", SwitchToDark, None),
 		]);
 
+		// This is exclusively for the coming multi-select option
 		cx.on_action(|_: &Quit, cx| {
 			// Might not be set???
 			let emojis_to_output = cx.try_global::<SelectedEmoji>();
@@ -213,35 +214,30 @@ fn initialize(cx: &mut App) {
 	// Get mouse position and calculate window position
 	let bounds = match Mouse::get_mouse_position() {
 		Mouse::Position { x, y } => {
-			let mouse_x = x as f32;
-			let mouse_y = y as f32;
-			let offset = 10.0; // Small offset from cursor
-
-			// Calculate preferred position (right and below cursor)
-			let mut window_x = mouse_x + offset;
-			let mut window_y = mouse_y + offset;
+			let mut mouse_x = x as f32;
+			let mut mouse_y = y as f32;
 
 			// Check right edge overflow
-			if window_x + initial_width > display_size.width.as_f32() {
+			if mouse_x + initial_width > display_size.width.as_f32() {
 				// Position to the left of cursor instead
-				window_x = mouse_x - initial_width - offset;
+				mouse_x = mouse_x - initial_width;
 				// If still overflows left edge, clamp to left edge
-				if window_x < 0.0 {
-					window_x = 0.0;
+				if mouse_x < 0.0 {
+					mouse_x = 0.0;
 				}
 			}
 
 			// Check bottom edge overflow
-			if window_y + initial_height > display_size.height.as_f32() {
+			if mouse_y + initial_height > display_size.height.as_f32() {
 				// Position above cursor instead
-				window_y = mouse_y - initial_height - offset;
+				mouse_y = mouse_y - initial_height;
 				// If still overflows top edge, clamp to top edge
-				if window_y < 0.0 {
-					window_y = 0.0;
+				if mouse_y < 0.0 {
+					mouse_y = 0.0;
 				}
 			}
 
-			Bounds::new(point(px(window_x), px(window_y)), size(px(initial_width), px(initial_height)))
+			Bounds::new(point(px(mouse_x), px(mouse_y)), size(px(initial_width), px(initial_height)))
 		}
 		Mouse::Error => {
 			// Fallback to centered if mouse position unavailable
