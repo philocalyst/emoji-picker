@@ -141,6 +141,7 @@ fn run_app() {
 		]);
 
 		cx.on_action(|_: &Quit, cx| {
+			// Might not be set???
 			let emojis_to_output = cx.try_global::<SelectedEmoji>();
 
 			if let Some(emojis) = emojis_to_output {

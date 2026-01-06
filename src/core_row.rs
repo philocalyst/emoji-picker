@@ -2,8 +2,9 @@ use emoji::EmojiEntry;
 use gpui::{App, InteractiveElement, IntoElement, ParentElement, RenderOnce, StatefulInteractiveElement, Styled, Window, div, px};
 use gpui_component::StyledExt;
 pub(crate) use gpui_component::{ActiveTheme, Selectable, h_flex};
+use nonempty::NonEmpty;
 
-use crate::insert_emoji;
+use crate::{SelectedEmoji, insert_emoji};
 
 #[derive(IntoElement)]
 pub(crate) struct EmojiRow {
@@ -28,16 +29,23 @@ impl Selectable for EmojiRow {
 
 impl RenderOnce for EmojiRow {
 	fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
-		h_flex().gap_2().children(self.emojis.iter().map(|emoji| {
-			div().text_size(self.font_size)
-				.id(emoji.emoji().glyph) // ID is required for jump points
-				.hover(|div| div.bg(cx.theme().accent)) // Bring out the background for hover contrast
-				.on_click(|_click_event, _window, _app| {
-					insert_emoji(emoji.emoji().glyph);
+		// Cache the theme color here so we don't capture cx in .hover()
+		let hover_bg = cx.theme().accent;
+
+		h_flex().gap_2().children(self.emojis.into_iter().map(move |emoji| {
+			let emoji_data = emoji.emoji().clone();
+			let other_emoji = emoji.emoji().clone();
+
+			div()
+				.text_size(self.font_size)
+				.id(emoji_data.glyph)
+				.hover(move |div| div.bg(hover_bg))
+				.on_click(move |_click_event, _window, cx| {
+					cx.set_global::<SelectedEmoji>(SelectedEmoji(NonEmpty::new(emoji_data.clone())));
 				})
 				.corner_radii(gpui::Corners::all(px(5f32)))
 				.cursor_pointer()
-				.child(emoji.emoji().glyph)
+				.child(other_emoji.glyph)
 		}))
 	}
 }
