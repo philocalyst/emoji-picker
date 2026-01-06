@@ -1,6 +1,7 @@
-use std::{env, sync::LazyLock, time::Duration};
+use std::{env, fs, sync::LazyLock, thread::{self, sleep}, time::Duration};
 
 use emoji_search;
+use enigo::{Enigo, Keyboard, Settings};
 #[cfg(target_os = "macos")]
 use global_hotkey::hotkey::Modifiers;
 use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey}};
@@ -25,7 +26,7 @@ actions!(theme, [SwitchToLight, SwitchToDark]);
 actions!(text_input, [Quit,]);
 
 static EMOJI_DATA: LazyLock<emoji_search::types::EmojiData> =
-	std::sync::LazyLock::new(|| emoji_search::types::load_emoji_data().unwrap());
+	LazyLock::new(|| emoji_search::types::load_emoji_data().unwrap());
 
 static SEARCHER: LazyLock<emoji_search::EmojiSearcher> =
 	LazyLock::new(|| emoji_search::EmojiSearcher::new(&*EMOJI_DATA, None));
@@ -100,7 +101,7 @@ fn run_app() {
 	let app = Application::new();
 
 	let (tx, rx) = std::sync::mpsc::channel();
-	std::thread::spawn(move || {
+	thread::spawn(move || {
 		let receiver = GlobalHotKeyEvent::receiver();
 		loop {
 			if let Ok(event) = receiver.recv() {
@@ -132,6 +133,8 @@ fn run_app() {
 		]);
 
 		cx.on_action(|_: &Quit, cx| {
+			insert_emoji("h");
+
 			cx.shutdown();
 		});
 
@@ -227,6 +230,9 @@ fn initialize(cx: &mut App) {
 }
 
 fn insert_emoji(emoji: &str) {
-	espanso_inject::get_injector(espanso_inject::InjectorCreationOptions::default())
-		.and_then(|injector| injector.send_string(emoji, espanso_inject::InjectionOptions::default()));
+	let emoji_owned = emoji.to_string();
+	thread::spawn(move || {
+		let mut enigo = Enigo::new(&Settings::default()).unwrap();
+		enigo.text(&emoji_owned);
+	});
 }

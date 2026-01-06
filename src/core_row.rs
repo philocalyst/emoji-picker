@@ -3,6 +3,8 @@ use gpui::{App, InteractiveElement, IntoElement, ParentElement, RenderOnce, Stat
 use gpui_component::StyledExt;
 pub(crate) use gpui_component::{ActiveTheme, Selectable, h_flex};
 
+use crate::insert_emoji;
+
 #[derive(IntoElement)]
 pub(crate) struct EmojiRow {
 	/// The Emoji contained by the row
@@ -31,10 +33,7 @@ impl RenderOnce for EmojiRow {
 				.id(emoji.emoji().glyph) // ID is required for jump points
 				.hover(|div| div.bg(cx.theme().accent)) // Bring out the background for hover contrast
 				.on_click(|_click_event, _window, _app| {
-					espanso_inject::get_injector(espanso_inject::InjectorCreationOptions::default())
-						.unwrap()
-						.send_string("hi", espanso_inject::InjectionOptions::default())
-						.expect("Shouldn't fail, I trust Espanso");
+					insert_emoji(emoji.emoji().glyph);
 				})
 				.corner_radii(gpui::Corners::all(px(5f32)))
 				.cursor_pointer()
