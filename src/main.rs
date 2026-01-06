@@ -1,5 +1,6 @@
 use std::{env, fs, sync::LazyLock, thread::{self, sleep}, time::Duration};
 
+use emoji::Emoji;
 use emoji_search;
 use enigo::{Enigo, Keyboard, Settings};
 #[cfg(target_os = "macos")]
@@ -8,6 +9,7 @@ use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKe
 use gpui::{AnyView, AnyWindowHandle, App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, point, prelude::*, px, size};
 use gpui_component::{ActiveTheme, PixelsExt, Root, ThemeRegistry, theme::{self, Theme, ThemeMode}};
 use mouse_position::mouse_position::Mouse;
+use nonempty::NonEmpty;
 use service_manager::*;
 
 use crate::picker::Picker;
@@ -38,6 +40,10 @@ struct AppState {
 }
 
 impl gpui::Global for AppState {}
+
+/// The currently selected emoji
+struct SelectedEmoji(NonEmpty<Emoji>);
+impl gpui::Global for SelectedEmoji {}
 
 fn main() {
 	// Check if this instance is the service running in background
@@ -135,7 +141,11 @@ fn run_app() {
 		]);
 
 		cx.on_action(|_: &Quit, cx| {
-			insert_emoji("h");
+			let emojis_to_output = cx.try_global::<SelectedEmoji>();
+
+			if let Some(emojis) = emojis_to_output {
+				insert_emoji(emojis.0.head.glyph);
+			}
 
 			cx.shutdown();
 		});
