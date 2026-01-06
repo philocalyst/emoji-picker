@@ -129,6 +129,7 @@ fn run_app() {
 		cx.bind_keys([
 			KeyBinding::new("super-q", Quit, None),
 			KeyBinding::new("super-w", Quit, None),
+			KeyBinding::new("esc", Quit, None),
 			KeyBinding::new("super-right", SwitchToLight, None),
 			KeyBinding::new("super-left", SwitchToDark, None),
 		]);
