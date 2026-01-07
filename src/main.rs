@@ -26,6 +26,7 @@ impl gpui::Global for PickerHandle {}
 
 actions!(picker, [JumpToSection]);
 actions!(theme, [SwitchToLight, SwitchToDark]);
+actions!(tones, [RotateTones]);
 actions!(text_input, [Quit,]);
 
 static EMOJI_DATA: LazyLock<emoji_search::types::EmojiData> =
@@ -152,6 +153,15 @@ fn run_app() {
 			cx.shutdown();
 		});
 
+		cx.on_action(|_: &RotateTones, cx| {
+			let current_index = cx.global_mut::<ToneIndex>();
+
+			// Limiting the maximum tones, should reflect the currently supported.
+			const MAX: u8 = 6;
+
+			current_index.0 = (current_index.0 + 1) % MAX;
+		});
+
 		cx.on_action(|_: &SwitchToLight, cx| {
 			let window = cx.global::<AppState>().window;
 			window
@@ -204,6 +214,9 @@ fn run_app() {
 }
 
 fn initialize(cx: &mut App) {
+	// Set to yellow -- 0
+	cx.set_global::<ToneIndex>(ToneIndex(0));
+
 	let rem_size = 16.0;
 	let displays = cx.displays();
 	let display = displays.first().expect("no display found");
