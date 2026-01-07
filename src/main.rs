@@ -195,7 +195,7 @@ fn run_app() {
 							})
 							.expect("Context should be sturdy");
 					}
-					ctx.background_executor().timer(Duration::from_millis(100)).await;
+					ctx.background_executor().timer(Duration::from_millis(5)).await;
 				}
 			}
 		})
@@ -259,8 +259,8 @@ fn initialize(cx: &mut App) {
 
 			let picker = cx.new(|cx| Picker::new(window, cx));
 
-			window.focus(&picker.read(cx).focus_handle(cx));
 			window.activate_window();
+			window.focus(&picker.read(cx).focus_handle(cx));
 
 			cx.set_global::<AppState>(AppState {
 				picker: picker.clone(),
