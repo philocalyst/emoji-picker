@@ -18,3 +18,13 @@ objc = "0.2.7"
 enigo = "0.6.1"
 mouse_position = "0.1.4"
 nonempty = "0.12.0"
+
+[package.metadata.packager]
+before-packaging-command = "cargo build --release"
+product-name = "Emoji"
+identifier = "com.philocalyst.emoji"
+resources = ["Cargo.toml", "src"]
+
+[package.metadata.packager.macos]
+# Hide the app from the Dock
+background-app = true
