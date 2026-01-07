@@ -1,4 +1,4 @@
-use emoji::{EmojiEntry, lookup_by_glyph::iter_emoji};
+use emoji::{EmojiEntry, lookup_by_glyph::{ALL_EMOJI, iter_emoji}};
 use gpui::Pixels;
 
 use crate::{SEARCHER, grouped_grid::GroupedEmojis};
@@ -63,7 +63,7 @@ pub(crate) fn calculate_emoji_sizing(container_width: f64, rem_size: Pixels) -> 
 pub(crate) fn grouped_emojis() -> Vec<GroupedEmojis> {
 	emoji::Group::iter().fold(Vec::from(vec![]), |mut all: Vec<GroupedEmojis>, current_group| {
 		let group_emojis: Vec<&'static EmojiEntry> =
-			iter_emoji().filter(|e| e.emoji().group == current_group).collect();
+			ALL_EMOJI.iter().filter(|e| e.emoji().group == current_group).collect();
 
 		all.push(GroupedEmojis { group: current_group, emojis: group_emojis });
 
