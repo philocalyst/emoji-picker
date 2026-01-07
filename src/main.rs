@@ -50,6 +50,10 @@ impl gpui::Global for SelectedEmoji {}
 struct ToneIndex(u8);
 impl gpui::Global for ToneIndex {}
 
+impl Default for ToneIndex {
+	fn default() -> Self { Self(0) }
+}
+
 fn main() {
 	// Check if this instance is the service running in background
 	let args: Vec<String> = env::args().collect();
@@ -160,7 +164,7 @@ fn run_app() {
 		});
 
 		cx.on_action(|_: &RotateTones, cx| {
-			let current_index = cx.global_mut::<ToneIndex>();
+			let current_index = cx.default_global::<ToneIndex>();
 
 			// Limiting the maximum tones, should reflect the currently supported.
 			const MAX: u8 = 6;
