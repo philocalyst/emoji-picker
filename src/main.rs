@@ -26,7 +26,7 @@ impl gpui::Global for PickerHandle {}
 
 actions!(picker, [JumpToSection]);
 actions!(theme, [SwitchToLight, SwitchToDark]);
-actions!(tones, [RotateTones]);
+actions!(tones, [RotateTonesForward, RotateTonesBackward]);
 actions!(text_input, [Quit,]);
 
 static EMOJI_DATA: LazyLock<emoji_search::types::EmojiData> =
@@ -129,6 +129,9 @@ fn run_app() {
 	});
 
 	app.run(|cx: &mut App| {
+		// Set to yellow -- 0
+		cx.set_global::<ToneIndex>(ToneIndex(0));
+
 		theme::init(cx);
 
 		// Set up custom themes directory
@@ -145,8 +148,8 @@ fn run_app() {
 			KeyBinding::new("super-q", Quit, None),
 			KeyBinding::new("super-w", Quit, None),
 			KeyBinding::new("escape", Quit, None),
-			KeyBinding::new("super-<", SwitchToLight, None),
-			KeyBinding::new("super->", SwitchToLight, None),
+			KeyBinding::new("super-p", RotateTonesBackward, None),
+			KeyBinding::new("super-n", RotateTonesForward, None),
 			KeyBinding::new("super-right", SwitchToLight, None),
 			KeyBinding::new("super-left", SwitchToDark, None),
 		]);
@@ -196,9 +199,6 @@ fn run_app() {
 }
 
 fn initialize(cx: &mut App) {
-	// Set to yellow -- 0
-	cx.set_global::<ToneIndex>(ToneIndex(0));
-
 	let rem_size = 16.0;
 	let displays = cx.displays();
 	let display = displays.first().expect("no display found");
