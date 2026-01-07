@@ -1,8 +1,10 @@
+use std::fs::write;
+
 use emoji::EmojiEntry;
 use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription, Window, prelude::*};
 use gpui_component::{ActiveTheme, IndexPath, list::{List, ListEvent, ListState}, v_flex};
 
-use crate::{JumpToSection, RotateTones, ToneIndex, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
+use crate::{JumpToSection, RotateTonesBackward, RotateTonesForward, ToneIndex, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
 
 pub(crate) struct Picker {
 	/// The current state of focus
@@ -112,19 +114,37 @@ impl Picker {
 	}
 }
 
+fn rotate_tones(current_index: &mut ToneIndex, up: bool) {
+	const MAX: u8 = 6;
+
+	if up {
+		current_index.0 = (current_index.0 + 1) % MAX;
+	} else {
+		current_index.0 = (current_index.0 + MAX - 1) % MAX;
+	}
+}
+
 impl Render for Picker {
 	fn render(&mut self, win: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
 		v_flex()
 			.bg(cx.theme().colors.background)
 			.text_color(cx.theme().colors.foreground)
 			.p_1()
-			.on_action(cx.listener(|this, _: &RotateTones, window, cx| {
+			.on_action(cx.listener(|_, _: &RotateTonesForward, _, cx| {
 				let current_index = cx.default_global::<ToneIndex>();
 
-				// Limiting the maximum tones, should reflect the currently supported.
-				const MAX: u8 = 6;
+				rotate_tones(current_index, true);
 
-				current_index.0 = (current_index.0 + 1) % MAX;
+				// redraw
+				cx.notify();
+			}))
+			.on_action(cx.listener(|_, _: &RotateTonesBackward, _, cx| {
+				let current_index = cx.default_global::<ToneIndex>();
+
+				rotate_tones(current_index, false);
+
+				// redraw
+				cx.notify();
 			}))
 			.on_action(cx.listener(|this, _: &JumpToSection, window, cx| {
 				this.jump_to_section(3, window, cx);
