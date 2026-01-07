@@ -4,7 +4,7 @@ use gpui_component::StyledExt;
 pub(crate) use gpui_component::{ActiveTheme, Selectable, h_flex};
 use nonempty::NonEmpty;
 
-use crate::{SelectedEmoji, insert_emoji};
+use crate::{SelectedEmoji, ToneIndex, insert_emoji};
 
 #[derive(IntoElement)]
 pub(crate) struct EmojiRow {
@@ -33,12 +33,21 @@ impl RenderOnce for EmojiRow {
 		let hover_bg = cx.theme().accent;
 
 		h_flex().gap_2().children(self.emojis.into_iter().map(move |emoji| {
+			let tone_index = cx.global::<ToneIndex>();
+
+			// Get the right tone
+			let pure_emoji = match emoji {
+				EmojiEntry::Standard(emoji) => emoji.glyph,
+				EmojiEntry::Toned(toned_emoji) => {
+					toned_emoji.tones.get(tone_index.0 as usize).unwrap_or(&toned_emoji.emoji).glyph
+				}
+			};
+
 			let emoji_data = emoji.emoji().clone();
-			let other_emoji = emoji.emoji().clone();
 
 			div()
 				.text_size(self.font_size)
-				.id(emoji_data.glyph)
+				.id(pure_emoji)
 				.hover(move |div| div.bg(hover_bg))
 				.on_click(move |_click_event, _window, cx| {
 					insert_emoji(emoji.emoji().glyph);
@@ -47,7 +56,7 @@ impl RenderOnce for EmojiRow {
 				})
 				.corner_radii(gpui::Corners::all(px(5f32)))
 				.cursor_pointer()
-				.child(other_emoji.glyph)
+				.child(pure_emoji)
 		}))
 	}
 }
