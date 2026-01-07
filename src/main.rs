@@ -163,47 +163,6 @@ fn run_app() {
 			cx.shutdown();
 		});
 
-		cx.on_action(|_: &RotateTones, cx| {
-			let current_index = cx.default_global::<ToneIndex>();
-
-			// Limiting the maximum tones, should reflect the currently supported.
-			const MAX: u8 = 6;
-
-			current_index.0 = (current_index.0 + 1) % MAX;
-		});
-
-		cx.on_action(|_: &SwitchToLight, cx| {
-			let window = cx.global::<AppState>().window;
-			window
-				.update(cx, |_, window, cx| {
-					Theme::change(ThemeMode::Light, Some(window), cx);
-				})
-				.unwrap();
-		});
-
-		cx.on_action(|_: &SwitchToDark, cx| {
-			let window = cx.global::<AppState>().window;
-			window
-				.update(cx, |_, window, cx| {
-					Theme::change(ThemeMode::Dark, Some(window), cx);
-				})
-				.unwrap();
-		});
-
-		cx.on_action(|_: &JumpToSection, cx| {
-			let state = cx.global::<AppState>();
-			let picker_entity = state.picker.clone();
-			let window_handle = state.window;
-
-			window_handle
-				.update(cx, |_, window, cx| {
-					picker_entity.update(cx, |picker, cx| {
-						picker.jump_to_section(3, window, cx);
-					});
-				})
-				.unwrap();
-		});
-
 		cx.spawn(|ctx: &mut gpui::AsyncApp| {
 			let ctx = ctx.clone();
 			async move {
@@ -211,6 +170,19 @@ fn run_app() {
 					if rx.try_recv().is_ok() {
 						ctx
 							.update(|cx| {
+								// Toggle: if window exists and is valid, focus it
+								// Otherwise create a new one
+								if let Some(state) = cx.try_global::<AppState>() {
+									if state
+										.window
+										.update(cx, |_, window, _| {
+											window.activate_window();
+										})
+										.is_ok()
+									{
+										return;
+									}
+								}
 								initialize(cx);
 							})
 							.expect("Context should be sturdy");
