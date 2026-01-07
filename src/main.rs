@@ -1,4 +1,4 @@
-use std::{env, fs, sync::LazyLock, thread::{self, sleep}, time::Duration};
+use std::{env, fs, num::{NonZeroI8, NonZeroU8}, sync::LazyLock, thread::{self, sleep}, time::Duration};
 
 use emoji::Emoji;
 use emoji_search;
@@ -45,6 +45,10 @@ impl gpui::Global for AppState {}
 /// The currently selected emoji
 struct SelectedEmoji(NonEmpty<Emoji>);
 impl gpui::Global for SelectedEmoji {}
+
+/// The tone we're currently on.
+struct ToneIndex(u8);
+impl gpui::Global for ToneIndex {}
 
 fn main() {
 	// Check if this instance is the service running in background
@@ -136,7 +140,9 @@ fn run_app() {
 		cx.bind_keys([
 			KeyBinding::new("super-q", Quit, None),
 			KeyBinding::new("super-w", Quit, None),
-			KeyBinding::new("esc", Quit, None),
+			KeyBinding::new("escape", Quit, None),
+			KeyBinding::new("super-<", SwitchToLight, None),
+			KeyBinding::new("super->", SwitchToLight, None),
 			KeyBinding::new("super-right", SwitchToLight, None),
 			KeyBinding::new("super-left", SwitchToDark, None),
 		]);
