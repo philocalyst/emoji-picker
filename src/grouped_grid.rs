@@ -33,9 +33,10 @@ impl ListDelegate for EmojiListDelegate {
 		_: &mut App,
 	) -> Option<impl IntoElement> {
 		// Draw the current sections name as a psuedo-header
-		self.emoji_legions.get(section).map(|grouped| {
-			div().text_lg().font_semibold().pb_2().pt_2().child(format!("{:?}", grouped.group))
-		})
+		self
+			.emoji_legions
+			.get(section)
+			.map(|grouped| div().text_lg().font_semibold().pb_2().pt_2().child(grouped.group.to_string()))
 	}
 
 	/// Generate the relevant emoji for an index, as a struct to interpret
