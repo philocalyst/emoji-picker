@@ -33,6 +33,11 @@ impl RenderOnce for EmojiRow {
 		padding.right = px(0.);
 		padding.left = px(0.);
 
+		let mut padding2 = Edges::all(px(1.));
+		padding2.bottom = px(0.);
+		padding2.top = px(0.);
+		padding2.right = px(-1.);
+
 		h_flex().paddings(padding).gap_2().children(self.emojis.into_iter().map(move |emoji| {
 			let tone_index = cx.global::<ToneIndex>();
 
@@ -47,6 +52,7 @@ impl RenderOnce for EmojiRow {
 			div()
 				.bg(Hsla { h: 0., s: 0., l: 1., a: 0.1 })
 				.text_size(self.font_size)
+				.paddings(padding2)
 				.id(pure_emoji)
 				.shadow(vec![
 					BoxShadow {
@@ -71,7 +77,7 @@ impl RenderOnce for EmojiRow {
 					}])
 				})
 				.on_click(move |_click_event, _window, cx| {
-					insert_emoji(emoji.emoji().glyph);
+					insert_emoji(pure_emoji);
 
 					cx.shutdown();
 				})
