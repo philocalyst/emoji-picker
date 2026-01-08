@@ -6,10 +6,11 @@ use enigo::{Enigo, Keyboard, Settings};
 #[cfg(target_os = "macos")]
 use global_hotkey::hotkey::Modifiers;
 use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey}};
-use gpui::{AnyView, AnyWindowHandle, App, Application, Bounds, Entity, Focusable, Hsla, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, point, prelude::*, px, size};
+use gpui::{Action, AnyView, AnyWindowHandle, App, Application, Bounds, Entity, Focusable, Hsla, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, point, prelude::*, px, size};
 use gpui_component::{ActiveTheme, PixelsExt, Root, ThemeColor, ThemeRegistry, theme::{self, Theme, ThemeMode}};
 use mouse_position::mouse_position::Mouse;
 use nonempty::NonEmpty;
+use serde::Deserialize;
 use service_manager::*;
 
 use crate::picker::Picker;
@@ -24,19 +25,33 @@ mod variant_overlay;
 struct PickerHandle(Entity<Picker>);
 impl gpui::Global for PickerHandle {}
 
+macro_rules! bind_keys {
+    (
+        $cx:ident,
+        [ $($static_binding:expr),* $(,)? ],
+        jumps: [ $($n:tt),* ]
+    ) => {
+        $cx.bind_keys([
+            $($static_binding,)*
+            $(
+                KeyBinding::new(
+                    concat!("super-", stringify!($n)),
+                    JumpToSection { number: $n },
+                    None
+                ),
+            )*
+        ]);
+    };
+}
+
+#[derive(Action, Clone, PartialEq, Eq, Deserialize)]
+#[action(namespace = input, no_json)]
+pub struct JumpToSection {
+	/// Is confirm with secondary.
+	pub number: usize,
+}
+
 actions!(theme, [SwitchToLight, SwitchToDark]);
-actions!(picker, [
-	JumpToSection0,
-	JumpToSection1,
-	JumpToSection2,
-	JumpToSection3,
-	JumpToSection4,
-	JumpToSection5,
-	JumpToSection6,
-	JumpToSection7,
-	JumpToSection8,
-	JumpToSection9
-]);
 actions!(tones, [RotateTonesForward, RotateTonesBackward]);
 actions!(text_input, [Quit,]);
 
@@ -143,7 +158,7 @@ fn run_app() {
 		// Set to yellow -- 0
 		cx.set_global::<ToneIndex>(ToneIndex(0));
 
-		gpui_component::init(cx);
+		theme::init(cx);
 
 		// Set up custom themes directory
 		ThemeRegistry::watch_dir(
@@ -155,23 +170,17 @@ fn run_app() {
 		)
 		.unwrap();
 
-		cx.bind_keys([
-			KeyBinding::new("super-q", Quit, None),
-			KeyBinding::new("super-w", Quit, None),
-			KeyBinding::new("escape", Quit, None),
-			KeyBinding::new("super-p", RotateTonesBackward, None),
-			KeyBinding::new("super-n", RotateTonesForward, None),
-			KeyBinding::new("super-0", JumpToSection0, None),
-			KeyBinding::new("super-1", JumpToSection1, None),
-			KeyBinding::new("super-2", JumpToSection2, None),
-			KeyBinding::new("super-3", JumpToSection3, None),
-			KeyBinding::new("super-4", JumpToSection4, None),
-			KeyBinding::new("super-5", JumpToSection5, None),
-			KeyBinding::new("super-6", JumpToSection6, None),
-			KeyBinding::new("super-7", JumpToSection7, None),
-			KeyBinding::new("super-8", JumpToSection8, None),
-			KeyBinding::new("super-9", JumpToSection9, None),
-		]);
+		bind_keys!(
+				cx,
+				[
+						KeyBinding::new("super-q", Quit, None),
+						KeyBinding::new("super-w", Quit, None),
+						KeyBinding::new("escape", Quit, None),
+						KeyBinding::new("super-p", RotateTonesBackward, None),
+						KeyBinding::new("super-n", RotateTonesForward, None),
+				],
+				jumps: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+		);
 
 		// This is exclusively for the coming multi-select option
 		cx.on_action(|_: &Quit, cx| {
@@ -268,7 +277,6 @@ fn initialize(cx: &mut App) {
 			..Default::default()
 		},
 		|window, cx| {
-			theme::init(cx);
 			cx.set_global(Theme {
 				colors: ThemeColor {
 					// High-level overrides with opacity
