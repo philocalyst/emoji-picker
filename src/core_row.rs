@@ -1,5 +1,5 @@
 use emoji::EmojiEntry;
-use gpui::{App, InteractiveElement, IntoElement, ParentElement, RenderOnce, StatefulInteractiveElement, Styled, Window, div, px};
+use gpui::{App, BoxShadow, Edges, InteractiveElement, IntoElement, ParentElement, RenderOnce, StatefulInteractiveElement, Styled, Window, div, hsla, px, red, transparent_black, transparent_white};
 use gpui_component::StyledExt;
 pub(crate) use gpui_component::{ActiveTheme, Selectable, h_flex};
 use nonempty::NonEmpty;
@@ -32,7 +32,11 @@ impl RenderOnce for EmojiRow {
 		// Cache the theme color here so we don't capture cx in .hover()
 		let hover_bg = cx.theme().accent;
 
-		h_flex().gap_2().children(self.emojis.into_iter().map(move |emoji| {
+		let mut padding = Edges::all(px(10.));
+		padding.right = px(0.);
+		padding.left = px(0.);
+
+		h_flex().paddings(padding).gap_2().children(self.emojis.into_iter().map(move |emoji| {
 			let tone_index = cx.global::<ToneIndex>();
 
 			// Get the right tone
@@ -43,11 +47,16 @@ impl RenderOnce for EmojiRow {
 				}
 			};
 
-			let emoji_data = emoji.emoji().clone();
-
 			div()
+				.bg(transparent_black())
 				.text_size(self.font_size)
 				.id(pure_emoji)
+				.shadow(vec![BoxShadow {
+					color:         hsla(0.0, 0.0, 0.0, 0.15),
+					offset:        gpui::point(gpui::px(0.), gpui::px(4.)), // Light from above
+					blur_radius:   gpui::px(10.),
+					spread_radius: gpui::px(1.),
+				}])
 				.hover(move |div| div.bg(hover_bg))
 				.on_click(move |_click_event, _window, cx| {
 					insert_emoji(emoji.emoji().glyph);

@@ -6,8 +6,8 @@ use enigo::{Enigo, Keyboard, Settings};
 #[cfg(target_os = "macos")]
 use global_hotkey::hotkey::Modifiers;
 use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey}};
-use gpui::{Action, AnyView, AnyWindowHandle, App, Application, Bounds, Entity, Focusable, Hsla, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, point, prelude::*, px, size};
-use gpui_component::{ActiveTheme, PixelsExt, Root, ThemeColor, ThemeRegistry, theme::{self, Theme, ThemeMode}};
+use gpui::{Action, AnyWindowHandle, App, AppContext, Application, Bounds, Entity, Focusable, Hsla, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, point, px, size};
+use gpui_component::{PixelsExt, Root, ThemeColor, ThemeRegistry, theme::{self, Theme, ThemeMode}};
 use mouse_position::mouse_position::Mouse;
 use nonempty::NonEmpty;
 use serde::Deserialize;
@@ -324,6 +324,7 @@ fn initialize(cx: &mut App) {
 				picker: picker.clone(),
 				window: window.window_handle(),
 			});
+
 			cx.new(|cx| Root::new(picker, window, cx))
 		},
 	)
