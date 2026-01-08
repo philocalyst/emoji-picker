@@ -4,7 +4,7 @@ use emoji::EmojiEntry;
 use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription, Window, prelude::*};
 use gpui_component::{ActiveTheme, IndexPath, list::{List, ListEvent, ListState}, v_flex};
 
-use crate::{JumpToSection, RotateTonesBackward, RotateTonesForward, ToneIndex, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
+use crate::{JumpToSection0, JumpToSection1, JumpToSection2, JumpToSection3, JumpToSection4, JumpToSection5, JumpToSection6, JumpToSection7, JumpToSection8, JumpToSection9, RotateTonesBackward, RotateTonesForward, ToneIndex, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
 
 pub(crate) struct Picker {
 	/// The current state of focus
@@ -106,7 +106,7 @@ impl Picker {
 		cx.update_entity(&self.list_state, |list, cx| {
 			list.scroll_to_item(
 				IndexPath { section, row: 0, column: 0 },
-				gpui::ScrollStrategy::Top,
+				gpui::ScrollStrategy::Center,
 				window,
 				cx,
 			);
@@ -146,8 +146,35 @@ impl Render for Picker {
 				// redraw
 				cx.notify();
 			}))
-			.on_action(cx.listener(|this, _: &JumpToSection, window, cx| {
+			.on_action(cx.listener(|this, _: &JumpToSection0, window, cx| {
+				this.jump_to_section(0, window, cx);
+			}))
+			.on_action(cx.listener(|this, _: &JumpToSection1, window, cx| {
+				this.jump_to_section(1, window, cx);
+			}))
+			.on_action(cx.listener(|this, _: &JumpToSection2, window, cx| {
+				this.jump_to_section(2, window, cx);
+			}))
+			.on_action(cx.listener(|this, _: &JumpToSection3, window, cx| {
 				this.jump_to_section(3, window, cx);
+			}))
+			.on_action(cx.listener(|this, _: &JumpToSection4, window, cx| {
+				this.jump_to_section(4, window, cx);
+			}))
+			.on_action(cx.listener(|this, _: &JumpToSection5, window, cx| {
+				this.jump_to_section(5, window, cx);
+			}))
+			.on_action(cx.listener(|this, _: &JumpToSection6, window, cx| {
+				this.jump_to_section(6, window, cx);
+			}))
+			.on_action(cx.listener(|this, _: &JumpToSection7, window, cx| {
+				this.jump_to_section(7, window, cx);
+			}))
+			.on_action(cx.listener(|this, _: &JumpToSection8, window, cx| {
+				this.jump_to_section(8, window, cx);
+			}))
+			.on_action(cx.listener(|this, _: &JumpToSection9, window, cx| {
+				this.jump_to_section(9, window, cx);
 			}))
 			.track_focus(&self.focus_handle(cx))
 			.size_full()

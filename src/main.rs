@@ -24,8 +24,19 @@ mod variant_overlay;
 struct PickerHandle(Entity<Picker>);
 impl gpui::Global for PickerHandle {}
 
-actions!(picker, [JumpToSection]);
 actions!(theme, [SwitchToLight, SwitchToDark]);
+actions!(picker, [
+	JumpToSection0,
+	JumpToSection1,
+	JumpToSection2,
+	JumpToSection3,
+	JumpToSection4,
+	JumpToSection5,
+	JumpToSection6,
+	JumpToSection7,
+	JumpToSection8,
+	JumpToSection9
+]);
 actions!(tones, [RotateTonesForward, RotateTonesBackward]);
 actions!(text_input, [Quit,]);
 
@@ -150,8 +161,16 @@ fn run_app() {
 			KeyBinding::new("escape", Quit, None),
 			KeyBinding::new("super-p", RotateTonesBackward, None),
 			KeyBinding::new("super-n", RotateTonesForward, None),
-			KeyBinding::new("super-right", SwitchToLight, None),
-			KeyBinding::new("super-left", SwitchToDark, None),
+			KeyBinding::new("super-0", JumpToSection0, None),
+			KeyBinding::new("super-1", JumpToSection1, None),
+			KeyBinding::new("super-2", JumpToSection2, None),
+			KeyBinding::new("super-3", JumpToSection3, None),
+			KeyBinding::new("super-4", JumpToSection4, None),
+			KeyBinding::new("super-5", JumpToSection5, None),
+			KeyBinding::new("super-6", JumpToSection6, None),
+			KeyBinding::new("super-7", JumpToSection7, None),
+			KeyBinding::new("super-8", JumpToSection8, None),
+			KeyBinding::new("super-9", JumpToSection9, None),
 		]);
 
 		// This is exclusively for the coming multi-select option
