@@ -132,7 +132,7 @@ impl Render for Picker {
 			.on_action(cx.listener(|_, directive: &RotateTones, _, cx| {
 				let current_index = cx.default_global::<ToneIndex>();
 
-				rotate_tones(current_index, directive.direction.clone());
+				current_index.rotate(directive.direction.clone());
 
 				// redraw
 				cx.notify();

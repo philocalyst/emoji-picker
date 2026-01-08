@@ -88,6 +88,19 @@ impl gpui::Global for SelectedEmoji {}
 struct ToneIndex(u8);
 impl gpui::Global for ToneIndex {}
 
+impl ToneIndex {
+	const MAX: u8 = 6;
+
+	fn rotate(&mut self, direction: Direction) {
+		let place = &mut self.0;
+
+		*place = match direction {
+			Direction::Forward => (*place + 1) % Self::MAX,
+			Direction::Backward => (*place + Self::MAX - 1) % Self::MAX,
+		};
+	}
+}
+
 impl Default for ToneIndex {
 	fn default() -> Self { Self(0) }
 }
