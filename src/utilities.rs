@@ -73,11 +73,6 @@ pub(crate) fn grouped_emojis() -> Vec<GroupedEmojis> {
 
 /// Searches for emojis based on the provided text query
 pub(crate) fn search_emojis(text: &str) -> Vec<&'static EmojiEntry> {
-	match text {
-		"" => iter_emoji().collect(),
-		_ => {
-			let matcher: &'static emoji_search::EmojiSearcher = &*SEARCHER;
-			matcher.search_best_matching_emojis(text, Some(1000)).unwrap()
-		}
-	}
+	let matcher: &'static emoji_search::EmojiSearcher = &*SEARCHER;
+	matcher.search_best_matching_emojis(text, Some(100)).unwrap()
 }
