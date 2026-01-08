@@ -1,5 +1,5 @@
 use emoji::EmojiEntry;
-use gpui::{App, BoxShadow, Edges, InteractiveElement, IntoElement, ParentElement, RenderOnce, StatefulInteractiveElement, Styled, Window, div, hsla, px, red, transparent_black, transparent_white};
+use gpui::{App, BoxShadow, Edges, Hsla, InteractiveElement, IntoElement, ParentElement, RenderOnce, StatefulInteractiveElement, Styled, Window, div, green, hsla, px, red, transparent_black, transparent_white};
 use gpui_component::StyledExt;
 pub(crate) use gpui_component::{ActiveTheme, Selectable, h_flex};
 use nonempty::NonEmpty;
@@ -29,10 +29,7 @@ impl Selectable for EmojiRow {
 
 impl RenderOnce for EmojiRow {
 	fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
-		// Cache the theme color here so we don't capture cx in .hover()
-		let hover_bg = cx.theme().accent;
-
-		let mut padding = Edges::all(px(10.));
+		let mut padding = Edges::all(px(5.));
 		padding.right = px(0.);
 		padding.left = px(0.);
 
@@ -48,16 +45,31 @@ impl RenderOnce for EmojiRow {
 			};
 
 			div()
-				.bg(transparent_black())
+				.bg(Hsla { h: 0., s: 0., l: 1., a: 0.1 })
 				.text_size(self.font_size)
 				.id(pure_emoji)
-				.shadow(vec![BoxShadow {
-					color:         hsla(0.0, 0.0, 0.0, 0.15),
-					offset:        gpui::point(gpui::px(0.), gpui::px(4.)), // Light from above
-					blur_radius:   gpui::px(10.),
-					spread_radius: gpui::px(1.),
-				}])
-				.hover(move |div| div.bg(hover_bg))
+				.shadow(vec![
+					BoxShadow {
+						color:         hsla(0.0, 0.0, 0.0, 0.25),
+						offset:        gpui::point(px(0.), px(1.)),
+						blur_radius:   px(2.),
+						spread_radius: px(0.),
+					},
+					BoxShadow {
+						color:         hsla(0.0, 0.0, 0.0, 0.15),
+						offset:        gpui::point(px(0.), px(8.)),
+						blur_radius:   px(16.),
+						spread_radius: px(-2.), // Negative spread makes it look more natural
+					},
+				])
+				.hover(move |div| {
+					div.shadow(vec![BoxShadow {
+						color:         hsla(0.78, 0.6, 0.5, 0.8),
+						offset:        gpui::point(gpui::px(0.), gpui::px(4.)),
+						blur_radius:   gpui::px(12.),
+						spread_radius: gpui::px(7.),
+					}])
+				})
 				.on_click(move |_click_event, _window, cx| {
 					insert_emoji(emoji.emoji().glyph);
 

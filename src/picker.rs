@@ -1,8 +1,8 @@
 use std::fs::write;
 
 use emoji::EmojiEntry;
-use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription, Window, green, prelude::*, transparent_black};
-use gpui_component::{ActiveTheme, IndexPath, list::{List, ListEvent, ListState}, v_flex};
+use gpui::{App, Context, Entity, FocusHandle, Focusable, Hsla, InteractiveElement, Pixels, Subscription, Window, green, prelude::*, transparent_black};
+use gpui_component::{ActiveTheme, IndexPath, list::{List, ListEvent, ListState}, purple_400, v_flex};
 
 use crate::{Direction, JumpToSection, RotateTones, ToneIndex, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
 
@@ -127,7 +127,7 @@ impl Render for Picker {
 	fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
 		v_flex()
 			.bg(cx.theme().colors.background)
-			.text_color(green())
+			.text_color(purple_400())
 			.p_1()
 			.on_action(cx.listener(|_, directive: &RotateTones, _, cx| {
 				let current_index = cx.default_global::<ToneIndex>();
