@@ -29,62 +29,59 @@ impl Selectable for EmojiRow {
 
 impl RenderOnce for EmojiRow {
 	fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
-		let mut padding = Edges::all(px(5.));
-		padding.right = px(0.);
-		padding.left = px(0.);
+		let between_row_padding = Edges { top: px(5.), bottom: px(5.), ..Default::default() };
 
-		let mut padding2 = Edges::all(px(1.));
-		padding2.bottom = px(0.);
-		padding2.top = px(0.);
-		padding2.right = px(-1.);
+		let emoji_centering = Edges { left: px(1.), right: px(-1.), ..Default::default() };
 
-		h_flex().paddings(padding).gap_2().children(self.emojis.into_iter().map(move |emoji| {
-			let tone_index = cx.global::<ToneIndex>();
+		h_flex().paddings(between_row_padding).gap_2().children(self.emojis.into_iter().map(
+			move |emoji| {
+				let tone_index = cx.global::<ToneIndex>();
 
-			// Get the right tone
-			let pure_emoji = match emoji {
-				EmojiEntry::Standard(emoji) => emoji.glyph,
-				EmojiEntry::Toned(toned_emoji) => {
-					toned_emoji.tones.get(tone_index.0 as usize).unwrap_or(&toned_emoji.emoji).glyph
-				}
-			};
+				// Get the right tone
+				let pure_emoji = match emoji {
+					EmojiEntry::Standard(emoji) => emoji.glyph,
+					EmojiEntry::Toned(toned_emoji) => {
+						toned_emoji.tones.get(tone_index.0 as usize).unwrap_or(&toned_emoji.emoji).glyph
+					}
+				};
 
-			div()
-				.bg(Hsla { h: 0., s: 0., l: 1., a: 0.1 })
-				.text_size(self.font_size)
-				.paddings(padding2)
-				.id(pure_emoji)
-				.shadow(vec![
-					BoxShadow {
-						color:         hsla(0.0, 0.0, 0.0, 0.25),
-						offset:        gpui::point(px(0.), px(1.)),
-						blur_radius:   px(2.),
-						spread_radius: px(0.),
-					},
-					BoxShadow {
-						color:         hsla(0.0, 0.0, 0.0, 0.15),
-						offset:        gpui::point(px(0.), px(8.)),
-						blur_radius:   px(16.),
-						spread_radius: px(-2.), // Negative spread makes it look more natural
-					},
-				])
-				.hover(move |div| {
-					div.shadow(vec![BoxShadow {
-						color:         hsla(0.78, 0.6, 0.5, 0.8),
-						offset:        gpui::point(gpui::px(0.), gpui::px(4.)),
-						blur_radius:   gpui::px(12.),
-						spread_radius: gpui::px(7.),
-					}])
-				})
-				.on_click(move |_click_event, _window, cx| {
-					insert_emoji(pure_emoji);
+				div()
+					.bg(Hsla { h: 0., s: 0., l: 1., a: 0.1 })
+					.text_size(self.font_size)
+					.paddings(emoji_centering)
+					.id(pure_emoji)
+					.shadow(vec![
+						BoxShadow {
+							color:         hsla(0.0, 0.0, 0.0, 0.25),
+							offset:        gpui::point(px(0.), px(1.)),
+							blur_radius:   px(2.),
+							spread_radius: px(0.),
+						},
+						BoxShadow {
+							color:         hsla(0.0, 0.0, 0.0, 0.15),
+							offset:        gpui::point(px(0.), px(8.)),
+							blur_radius:   px(16.),
+							spread_radius: px(-2.), // Negative spread makes it look more natural
+						},
+					])
+					.hover(move |div| {
+						div.shadow(vec![BoxShadow {
+							color:         hsla(0.78, 0.6, 0.5, 0.8),
+							offset:        gpui::point(gpui::px(0.), gpui::px(4.)),
+							blur_radius:   gpui::px(12.),
+							spread_radius: gpui::px(7.),
+						}])
+					})
+					.on_click(move |_click_event, _window, cx| {
+						insert_emoji(pure_emoji);
 
-					cx.shutdown();
-				})
-				.tooltip(move |window, cx| Tooltip::new(emoji.emoji().name).build(window, cx))
-				.corner_radii(gpui::Corners::all(px(5f32)))
-				.cursor_pointer()
-				.child(pure_emoji)
-		}))
+						cx.shutdown();
+					})
+					.tooltip(move |window, cx| Tooltip::new(emoji.emoji().name).build(window, cx))
+					.corner_radii(gpui::Corners::all(px(5f32)))
+					.cursor_pointer()
+					.child(pure_emoji)
+			},
+		))
 	}
 }
