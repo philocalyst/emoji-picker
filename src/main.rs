@@ -51,8 +51,20 @@ pub struct JumpToSection {
 	pub number: usize,
 }
 
+#[derive(Action, Clone, PartialEq, Eq, Deserialize)]
+#[action(namespace = input, no_json)]
+pub struct RotateTones {
+	/// Is confirm with secondary.
+	pub direction: Direction,
+}
+
+#[derive(Clone, PartialEq, Eq, Deserialize)]
+pub enum Direction {
+	Forward,
+	Backward,
+}
+
 actions!(theme, [SwitchToLight, SwitchToDark]);
-actions!(tones, [RotateTonesForward, RotateTonesBackward]);
 actions!(text_input, [Quit,]);
 
 static EMOJI_DATA: LazyLock<emoji_search::types::EmojiData> =
@@ -176,8 +188,8 @@ fn run_app() {
 						KeyBinding::new("super-q", Quit, None),
 						KeyBinding::new("super-w", Quit, None),
 						KeyBinding::new("escape", Quit, None),
-						KeyBinding::new("super-p", RotateTonesBackward, None),
-						KeyBinding::new("super-n", RotateTonesForward, None),
+						KeyBinding::new("super-p", RotateTones { direction: Direction::Backward }, None),
+						KeyBinding::new("super-n", RotateTones { direction: Direction::Forward }, None),
 				],
 				jumps: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 		);

@@ -1,10 +1,10 @@
 use std::fs::write;
 
 use emoji::EmojiEntry;
-use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription, Window, prelude::*, transparent_black};
+use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription, Window, green, prelude::*, transparent_black};
 use gpui_component::{ActiveTheme, IndexPath, list::{List, ListEvent, ListState}, v_flex};
 
-use crate::{JumpToSection, RotateTonesBackward, RotateTonesForward, ToneIndex, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
+use crate::{Direction, JumpToSection, RotateTones, ToneIndex, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
 
 pub(crate) struct Picker {
 	/// The current state of focus
@@ -114,34 +114,25 @@ impl Picker {
 	}
 }
 
-fn rotate_tones(current_index: &mut ToneIndex, up: bool) {
+fn rotate_tones(current_index: &mut ToneIndex, direction: Direction) {
 	const MAX: u8 = 6;
 
-	if up {
-		current_index.0 = (current_index.0 + 1) % MAX;
-	} else {
-		current_index.0 = (current_index.0 + MAX - 1) % MAX;
-	}
+	match direction {
+		Direction::Forward => current_index.0 = (current_index.0 + 1) % MAX,
+		Direction::Backward => current_index.0 = (current_index.0 + MAX - 1) % MAX,
+	};
 }
 
 impl Render for Picker {
-	fn render(&mut self, win: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+	fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
 		v_flex()
 			.bg(cx.theme().colors.background)
-			.text_color(cx.theme().colors.foreground)
+			.text_color(green())
 			.p_1()
-			.on_action(cx.listener(|_, _: &RotateTonesForward, _, cx| {
+			.on_action(cx.listener(|_, directive: &RotateTones, _, cx| {
 				let current_index = cx.default_global::<ToneIndex>();
 
-				rotate_tones(current_index, true);
-
-				// redraw
-				cx.notify();
-			}))
-			.on_action(cx.listener(|_, _: &RotateTonesBackward, _, cx| {
-				let current_index = cx.default_global::<ToneIndex>();
-
-				rotate_tones(current_index, false);
+				rotate_tones(current_index, directive.direction.clone());
 
 				// redraw
 				cx.notify();
