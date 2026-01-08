@@ -6,7 +6,7 @@ use enigo::{Enigo, Keyboard, Settings};
 #[cfg(target_os = "macos")]
 use global_hotkey::hotkey::Modifiers;
 use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey}};
-use gpui::{Action, AnyWindowHandle, App, AppContext, Application, Bounds, Entity, Focusable, Hsla, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, point, px, size};
+use gpui::{Action, AnyWindowHandle, App, AppContext, Application, Bounds, Entity, Focusable, Global, Hsla, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, point, px, size};
 use gpui_component::{PixelsExt, Root, ThemeColor, ThemeRegistry, theme::{self, Theme, ThemeMode}};
 use mouse_position::mouse_position::Mouse;
 use nonempty::NonEmpty;
@@ -81,8 +81,12 @@ struct AppState {
 impl gpui::Global for AppState {}
 
 /// The currently selected emoji
-struct SelectedEmoji(NonEmpty<Emoji>);
+struct SelectedEmoji(Option<NonEmpty<Emoji>>);
 impl gpui::Global for SelectedEmoji {}
+
+impl Default for SelectedEmoji {
+	fn default() -> Self { Self(None) }
+}
 
 /// The tone we're currently on.
 struct ToneIndex(u8);
@@ -210,11 +214,11 @@ fn run_app() {
 		// This is exclusively for the coming multi-select option
 		cx.on_action(|_: &Quit, cx| {
 			// Might not be set???
-			let emojis_to_output = cx.try_global::<SelectedEmoji>();
+			// let emojis_to_output = cx.try_global::<SelectedEmoji>();
 
-			if let Some(emojis) = emojis_to_output {
-				insert_emoji(emojis.0.head.glyph);
-			}
+			// if let Some(emojis) = emojis_to_output {
+			// 	insert_emoji(emojis.0.head.glyph);
+			// }
 
 			cx.shutdown();
 		});

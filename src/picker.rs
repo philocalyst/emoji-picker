@@ -3,15 +3,16 @@ use std::fs::write;
 use emoji::EmojiEntry;
 use gpui::{App, Context, Entity, FocusHandle, Focusable, Hsla, InteractiveElement, Pixels, Subscription, Window, green, prelude::*, transparent_black};
 use gpui_component::{ActiveTheme, IndexPath, list::{List, ListEvent, ListState}, purple_400, v_flex};
+use nonempty::NonEmpty;
 
-use crate::{Direction, JumpToSection, RotateTones, ToneIndex, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
+use crate::{Direction, JumpToSection, RotateTones, SelectedEmoji, ToneIndex, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
 
 pub(crate) struct Picker {
 	/// The current state of focus
 	pub(crate) focus_handle: FocusHandle,
 
 	/// The position of the selected emoji, if there is one
-	pub(crate) selected_emoji: Option<usize>,
+	pub(crate) selected_emoji: Option<&'static EmojiEntry>,
 
 	/// The state of the list
 	pub(crate) list_state: Entity<ListState<EmojiListDelegate>>,
@@ -35,6 +36,8 @@ impl Picker {
 		// but clamped to a reasonable range.
 		let sizing = calculate_emoji_sizing(container_width, rem_size);
 
+		let last_selected = cx.default_global::<SelectedEmoji>().0.clone();
+
 		// Initialize the list
 		let delegate = EmojiListDelegate::new(sizing.emojis_per_row, sizing.emoji_size);
 		let list_state = cx.new(|cx| ListState::new(delegate, window, cx).searchable(true));
@@ -44,19 +47,15 @@ impl Picker {
 			match ev {
 				ListEvent::Select(ix) => {
 					// Convert IndexPath to global emoji index
-					if let Some(global_idx) = picker.index_path_to_emoji_index(*ix, cx) {
-						picker.selected_emoji = Some(global_idx);
-						println!("Selected emoji index: {}", global_idx);
+					if let Some(emoji) = picker.get_emoji_at_path(*ix, cx) {
+						picker.selected_emoji = Some(emoji);
+						cx.set_global(SelectedEmoji(Some(NonEmpty::new(emoji.emoji().clone()))));
 					}
 				}
 				ListEvent::Confirm(ix) => {
-					if let Some(global_idx) = picker.index_path_to_emoji_index(*ix, cx) {
-						picker.selected_emoji = Some(global_idx);
+					if let Some(emoji) = picker.get_emoji_at_path(*ix, cx) {
+						picker.selected_emoji = Some(emoji);
 						// Get the actual emoji and do something with it
-						if let Some(emoji) = picker.get_emoji_at_index(global_idx, cx) {
-							println!("Confirmed emoji: {:?}", emoji);
-							// TODO: Actually insert/use the emoji, and quit the application
-						}
 					}
 				}
 				ListEvent::Cancel => {
@@ -95,11 +94,14 @@ impl Picker {
 		Some(global_idx)
 	}
 
-	// Get an emoji at an absolute, global index (no index path)
-	fn get_emoji_at_index(&self, idx: usize, cx: &App) -> Option<&'static EmojiEntry> {
+	fn get_emoji_at_path(&self, ix: IndexPath, cx: &App) -> Option<&'static EmojiEntry> {
 		let delegate = self.list_state.read(cx).delegate();
-
-		delegate.emoji_legions.iter().flat_map(|group| &group.emojis).nth(idx).copied()
+		delegate
+			.emoji_legions
+			.get(ix.section)?
+			.emojis
+			.get(ix.row * delegate.emojis_per_row + ix.column)
+			.map(|e| *e)
 	}
 
 	pub(crate) fn jump_to_section(&self, section: usize, window: &mut gpui::Window, cx: &mut App) {
