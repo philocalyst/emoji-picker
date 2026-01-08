@@ -1,7 +1,7 @@
 use emoji::EmojiEntry;
 use gpui::{App, BoxShadow, Edges, Hsla, InteractiveElement, IntoElement, ParentElement, RenderOnce, StatefulInteractiveElement, Styled, Window, div, green, hsla, px, red, transparent_black, transparent_white};
-use gpui_component::StyledExt;
 pub(crate) use gpui_component::{ActiveTheme, Selectable, h_flex};
+use gpui_component::{StyledExt, tooltip::Tooltip};
 use nonempty::NonEmpty;
 
 use crate::{SelectedEmoji, ToneIndex, insert_emoji};
@@ -75,6 +75,7 @@ impl RenderOnce for EmojiRow {
 
 					cx.shutdown();
 				})
+				.tooltip(move |window, cx| Tooltip::new(emoji.emoji().name).build(window, cx))
 				.corner_radii(gpui::Corners::all(px(5f32)))
 				.cursor_pointer()
 				.child(pure_emoji)
