@@ -26,12 +26,19 @@ impl ListDelegate for EmojiListDelegate {
 		(emoji_count + self.emojis_per_row - 1) / self.emojis_per_row
 	}
 
+	// TODO: Don't render when searching
 	fn render_section_header(
 		&self,
 		section: usize,
 		_: &mut Window,
 		_: &mut App,
 	) -> Option<impl IntoElement> {
+		// Don't show when searching, as the limited results make the headers feel
+		// cramped
+		if !self.query.is_empty() {
+			return None;
+		}
+
 		// Draw the current sections name as a psuedo-header
 		self
 			.emoji_legions

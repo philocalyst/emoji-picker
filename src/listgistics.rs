@@ -33,14 +33,7 @@ impl EmojiListDelegate {
 		} else {
 			let filtered = search_emojis(query);
 
-			for group in emoji::Group::iter() {
-				let group_emojis: Vec<&'static EmojiEntry> =
-					filtered.iter().filter(|e| e.emoji().group == group).copied().collect();
-
-				if !group_emojis.is_empty() {
-					self.emoji_legions.push(GroupedEmojis { group, emojis: group_emojis });
-				}
-			}
+			self.emoji_legions.push(GroupedEmojis { group: emoji::Group::PeopleBody, emojis: filtered });
 		}
 	}
 }
