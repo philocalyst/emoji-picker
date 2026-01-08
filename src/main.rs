@@ -6,8 +6,8 @@ use enigo::{Enigo, Keyboard, Settings};
 #[cfg(target_os = "macos")]
 use global_hotkey::hotkey::Modifiers;
 use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey}};
-use gpui::{AnyView, AnyWindowHandle, App, Application, Bounds, Entity, Focusable, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, point, prelude::*, px, size};
-use gpui_component::{ActiveTheme, PixelsExt, Root, ThemeRegistry, theme::{self, Theme, ThemeMode}};
+use gpui::{AnyView, AnyWindowHandle, App, Application, Bounds, Entity, Focusable, Hsla, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, point, prelude::*, px, size};
+use gpui_component::{ActiveTheme, PixelsExt, Root, ThemeColor, ThemeRegistry, theme::{self, Theme, ThemeMode}};
 use mouse_position::mouse_position::Mouse;
 use nonempty::NonEmpty;
 use service_manager::*;
@@ -143,7 +143,7 @@ fn run_app() {
 		// Set to yellow -- 0
 		cx.set_global::<ToneIndex>(ToneIndex(0));
 
-		theme::init(cx);
+		gpui_component::init(cx);
 
 		// Set up custom themes directory
 		ThemeRegistry::watch_dir(
@@ -262,14 +262,25 @@ fn initialize(cx: &mut App) {
 	cx.open_window(
 		WindowOptions {
 			titlebar: None,
+			window_background: gpui::WindowBackgroundAppearance::Blurred,
 			kind: WindowKind::PopUp,
 			window_bounds: Some(WindowBounds::Windowed(bounds)),
 			..Default::default()
 		},
 		|window, cx| {
-			gpui_component::init(cx);
-
-			cx.set_global(Theme::default());
+			theme::init(cx);
+			cx.set_global(Theme {
+				colors: ThemeColor {
+					// High-level overrides with opacity
+					background: Hsla { h: 0.0, s: 0.0, l: 0.05, a: 0.0 },
+					foreground: Hsla { h: 0.9, s: 0.3, l: 0.95, a: 0.0 },
+					accent: Hsla { h: 0.6, s: 0.7, l: 0.5, a: 0.0 },
+					..ThemeColor::default()
+				},
+				mode: ThemeMode::Dark,
+				transparent: Hsla { h: 0.9, s: 0.3, l: 0.95, a: 0.2 },
+				..Theme::default()
+			});
 
 			let picker = cx.new(|cx| Picker::new(window, cx));
 
@@ -280,7 +291,7 @@ fn initialize(cx: &mut App) {
 				picker: picker.clone(),
 				window: window.window_handle(),
 			});
-			cx.new(|cx| Root::new(AnyView::from(picker), window, cx))
+			cx.new(|cx| Root::new(picker, window, cx))
 		},
 	)
 	.unwrap();
