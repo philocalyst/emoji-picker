@@ -1,8 +1,8 @@
 use std::fs::write;
 
 use emoji::EmojiEntry;
-use gpui::{App, Context, Entity, FocusHandle, Focusable, Hsla, InteractiveElement, Pixels, Subscription, Window, green, prelude::*, transparent_black};
-use gpui_component::{ActiveTheme, IndexPath, list::{List, ListEvent, ListState}, purple_400, v_flex};
+use gpui::{App, Context, Entity, FocusHandle, Focusable, Hsla, InteractiveElement, Pixels, Subscription, Window, green, prelude::*, transparent_black, white};
+use gpui_component::{ActiveTheme, IndexPath, gray_300, gray_800, list::{List, ListEvent, ListState}, purple_400, v_flex};
 use nonempty::NonEmpty;
 
 use crate::{Direction, JumpToSection, RotateTones, SelectedEmoji, ToneIndex, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
@@ -128,7 +128,7 @@ fn rotate_tones(current_index: &mut ToneIndex, direction: Direction) {
 impl Render for Picker {
 	fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
 		v_flex()
-			.bg(cx.theme().colors.background)
+			.bg(gray_800())
 			.text_color(purple_400())
 			.p_1()
 			.on_action(cx.listener(|_, directive: &RotateTones, _, cx| {

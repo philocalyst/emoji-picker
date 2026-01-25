@@ -31,7 +31,7 @@ impl RenderOnce for EmojiRow {
 	fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
 		let between_row_padding = Edges { top: px(5.), bottom: px(5.), ..Default::default() };
 
-		let emoji_centering = Edges { left: px(1.), right: px(-1.), ..Default::default() };
+		let emoji_centering = Edges { left: px(2.), right: px(-2.), ..Default::default() };
 
 		h_flex().paddings(between_row_padding).gap_2().children(self.emojis.into_iter().map(
 			move |emoji| {

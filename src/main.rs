@@ -6,7 +6,7 @@ use enigo::{Enigo, Keyboard, Settings};
 #[cfg(target_os = "macos")]
 use global_hotkey::hotkey::Modifiers;
 use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey}};
-use gpui::{Action, AnyWindowHandle, App, AppContext, Application, Bounds, Entity, Focusable, Global, Hsla, KeyBinding, WindowBounds, WindowKind, WindowOptions, actions, point, px, size};
+use gpui::{Action, AnyWindowHandle, App, AppContext, Application, Bounds, Entity, Focusable, Global, Hsla, KeyBinding, Pixels, Size, WindowBounds, WindowKind, WindowOptions, actions, point, px, size};
 use gpui_component::{PixelsExt, Root, ThemeColor, ThemeRegistry, theme::{self, Theme, ThemeMode}};
 use mouse_position::mouse_position::Mouse;
 use nonempty::NonEmpty;
@@ -127,8 +127,7 @@ fn install_and_start_service() {
 	// Detect platform native service manager
 	let mut manager = <dyn ServiceManager>::native().expect("Failed to detect management platform");
 
-	// Attempt to use User-level service (LaunchAgent on macOS)
-	// This prevents needing sudo and allows GUI interaction
+	// Starts service
 	if let Err(e) = manager.set_level(ServiceLevel::User) {
 		eprintln!("Warning: Could not set service level to User, defaulting to System: {}", e);
 	}
@@ -139,7 +138,7 @@ fn install_and_start_service() {
 	match manager.install(ServiceInstallCtx {
 		label:             label.clone(),
 		program:           exe_path,
-		args:              vec!["--service".into()], // Crucial: tell the service to run the app logic
+		args:              vec!["--service".into()],
 		contents:          None,
 		username:          None,
 		working_directory: None,
@@ -189,16 +188,6 @@ fn run_app() {
 
 		theme::init(cx);
 
-		// Set up custom themes directory
-		ThemeRegistry::watch_dir(
-			"/Users/philocalyst/Projects/emoji-picker/src/themes".into(),
-			cx,
-			move |_| {
-				eprintln!("Themes loaded!");
-			},
-		)
-		.unwrap();
-
 		bind_keys!(
 				cx,
 				[
@@ -221,6 +210,19 @@ fn run_app() {
 			// }
 
 			cx.shutdown();
+		});
+
+		cx.set_global(Theme {
+			colors: ThemeColor {
+				// High-level overrides with opacity
+				background: Hsla { h: 0.0, s: 0.0, l: 0.05, a: 0.0 },
+				foreground: Hsla { h: 0.9, s: 0.3, l: 0.95, a: 0.0 },
+				accent: Hsla { h: 0.6, s: 0.7, l: 0.5, a: 0.0 },
+				..ThemeColor::default()
+			},
+			mode: ThemeMode::Dark,
+			transparent: Hsla { h: 0.9, s: 0.3, l: 0.95, a: 0.2 },
+			..Theme::default()
 		});
 
 		cx.spawn(|ctx: &mut gpui::AsyncApp| {
@@ -255,16 +257,13 @@ fn run_app() {
 	});
 }
 
-fn initialize(cx: &mut App) {
-	let rem_size = 16.0;
-	let displays = cx.displays();
-	let display = displays.first().expect("no display found");
-	let display_size = display.bounds().size;
-	let initial_width = (display_size.width.as_f32() * 0.25) + (rem_size * 2.0);
-	let initial_height = (display_size.height.as_f32() * 0.4) + (rem_size * 4.0);
-
-	// Get mouse position and calculate window position
-	let bounds = match Mouse::get_mouse_position() {
+fn get_bounds(
+	initial_width: f32,
+	initial_height: f32,
+	display_size: Size<Pixels>,
+	cx: &mut App,
+) -> Bounds<Pixels> {
+	match Mouse::get_mouse_position() {
 		Mouse::Position { x, y } => {
 			let mut mouse_x = x as f32;
 			let mut mouse_y = y as f32;
@@ -295,7 +294,19 @@ fn initialize(cx: &mut App) {
 			// Fallback to centered if mouse position unavailable
 			Bounds::centered(None, size(px(initial_width), px(initial_height)), cx)
 		}
-	};
+	}
+}
+
+fn initialize(cx: &mut App) {
+	let rem_size = 16.0;
+	let displays = cx.displays();
+	let display = displays.first().expect("no display found");
+	let display_size = display.bounds().size;
+	let initial_width = (display_size.width.as_f32() * 0.25) + (rem_size * 2.0);
+	let initial_height = (display_size.height.as_f32() * 0.4) + (rem_size * 4.0);
+
+	// Get mouse position and calculate window position
+	let bounds = get_bounds(initial_width, initial_height, display_size, cx);
 
 	cx.open_window(
 		WindowOptions {
@@ -306,18 +317,7 @@ fn initialize(cx: &mut App) {
 			..Default::default()
 		},
 		|window, cx| {
-			cx.set_global(Theme {
-				colors: ThemeColor {
-					// High-level overrides with opacity
-					background: Hsla { h: 0.0, s: 0.0, l: 0.05, a: 0.0 },
-					foreground: Hsla { h: 0.9, s: 0.3, l: 0.95, a: 0.0 },
-					accent: Hsla { h: 0.6, s: 0.7, l: 0.5, a: 0.0 },
-					..ThemeColor::default()
-				},
-				mode: ThemeMode::Dark,
-				transparent: Hsla { h: 0.9, s: 0.3, l: 0.95, a: 0.2 },
-				..Theme::default()
-			});
+			gpui_component::init(cx);
 
 			let picker = cx.new(|cx| Picker::new(window, cx));
 
@@ -338,8 +338,9 @@ fn initialize(cx: &mut App) {
 fn insert_emoji(emoji: &str) {
 	let emoji_owned = emoji.to_string();
 	thread::spawn(move || {
-		thread::sleep(Duration::from_millis(50));
+		// This is TOTALLY a race condition but it's also the BEST solution I have
+		thread::sleep(Duration::from_millis(75));
 		let mut enigo = Enigo::new(&Settings::default()).unwrap();
-		enigo.text(&emoji_owned);
+		enigo.text(&emoji_owned).unwrap();
 	});
 }
