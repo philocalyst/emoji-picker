@@ -1,15 +1,15 @@
-use emoji::EmojiEntry;
-use gpui::{App, BoxShadow, Edges, Hsla, InteractiveElement, IntoElement, ParentElement, RenderOnce, StatefulInteractiveElement, Styled, Window, div, green, hsla, px, red, transparent_black, transparent_white};
-pub(crate) use gpui_component::{ActiveTheme, Selectable, h_flex};
+use emoji::Emoji;
+use gpui::{App, BoxShadow, Edges, Hsla, InteractiveElement, IntoElement, ParentElement, RenderOnce, StatefulInteractiveElement, Styled, Window, div, hsla, px};
+pub(crate) use gpui_component::{Selectable, h_flex};
 use gpui_component::{StyledExt, tooltip::Tooltip};
-use nonempty::NonEmpty;
 
-use crate::{SelectedEmoji, ToneIndex, insert_emoji};
+
+use crate::{ToneIndex, insert_emoji};
 
 #[derive(IntoElement)]
 pub(crate) struct EmojiRow {
 	/// The Emoji contained by the row
-	pub(crate) emojis: Vec<&'static EmojiEntry>,
+	pub(crate) emojis: Vec<&'static Emoji>,
 
 	/// Whether the row has been selected
 	pub(crate) selected: bool,
@@ -38,11 +38,10 @@ impl RenderOnce for EmojiRow {
 				let tone_index = cx.global::<ToneIndex>();
 
 				// Get the right tone
-				let pure_emoji = match emoji {
-					EmojiEntry::Standard(emoji) => emoji.glyph,
-					EmojiEntry::Toned(toned_emoji) => {
-						toned_emoji.tones.get(tone_index.0 as usize).unwrap_or(&toned_emoji.emoji).glyph
-					}
+				let pure_emoji = if let Some(tones) = emoji.skin_tones {
+					tones.get(tone_index.0 as usize).unwrap_or(emoji).glyph
+				} else {
+					emoji.glyph
 				};
 
 				div()
@@ -77,7 +76,7 @@ impl RenderOnce for EmojiRow {
 
 						cx.shutdown();
 					})
-					.tooltip(move |window, cx| Tooltip::new(emoji.emoji().name).build(window, cx))
+					.tooltip(move |window, cx| Tooltip::new(emoji.name).build(window, cx))
 					.corner_radii(gpui::Corners::all(px(5f32)))
 					.cursor_pointer()
 					.child(pure_emoji)

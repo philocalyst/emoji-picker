@@ -1,4 +1,4 @@
-pub(crate) use emoji::EmojiEntry;
+
 use gpui::Pixels;
 use gpui_component::IndexPath;
 

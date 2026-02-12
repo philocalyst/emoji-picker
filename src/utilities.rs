@@ -1,4 +1,4 @@
-use emoji::{EmojiEntry, lookup_by_glyph::{ALL_EMOJI, iter_emoji}};
+use emoji::{Emoji, lookup_by_glyph::ALL_EMOJI};
 use gpui::Pixels;
 
 use crate::{SEARCHER, grouped_grid::GroupedEmojis};
@@ -62,8 +62,8 @@ pub(crate) fn calculate_emoji_sizing(container_width: f64, rem_size: Pixels) -> 
 /// Generate the grouped emoji vector that the application is based upon.
 pub(crate) fn grouped_emojis() -> Vec<GroupedEmojis> {
 	emoji::Group::iter().fold(Vec::from(vec![]), |mut all: Vec<GroupedEmojis>, current_group| {
-		let group_emojis: Vec<&'static EmojiEntry> =
-			ALL_EMOJI.iter().filter(|e| e.emoji().group == current_group).collect();
+		let group_emojis: Vec<&'static Emoji> =
+			ALL_EMOJI.iter().filter(|e| e.group == current_group).cloned().collect();
 
 		all.push(GroupedEmojis { group: current_group, emojis: group_emojis });
 
@@ -72,7 +72,7 @@ pub(crate) fn grouped_emojis() -> Vec<GroupedEmojis> {
 }
 
 /// Searches for emojis based on the provided text query
-pub(crate) fn search_emojis(text: &str) -> Vec<&'static EmojiEntry> {
+pub(crate) fn search_emojis(text: &str) -> Vec<&'static Emoji> {
 	let matcher: &'static emoji_search::EmojiSearcher = &*SEARCHER;
 	matcher.search_best_matching_emojis(text, Some(100)).unwrap()
 }

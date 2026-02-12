@@ -1,4 +1,4 @@
-use emoji::{EmojiEntry, Group};
+use emoji::{Emoji, Group};
 use gpui::{App, Context, IntoElement, ParentElement, Styled, Task, Window, div};
 use gpui_component::{IndexPath, StyledExt, list::{ListDelegate, ListState}};
 
@@ -6,7 +6,7 @@ use crate::{core_row::EmojiRow, listgistics::EmojiListDelegate};
 
 pub(crate) struct GroupedEmojis {
 	pub(crate) group:  Group,
-	pub(crate) emojis: Vec<&'static EmojiEntry>,
+	pub(crate) emojis: Vec<&'static Emoji>,
 }
 
 impl ListDelegate for EmojiListDelegate {

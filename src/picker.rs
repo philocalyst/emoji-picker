@@ -1,8 +1,8 @@
-use std::fs::write;
 
-use emoji::EmojiEntry;
-use gpui::{App, Context, Entity, FocusHandle, Focusable, Hsla, InteractiveElement, Pixels, Subscription, Window, green, prelude::*, transparent_black, white};
-use gpui_component::{ActiveTheme, IndexPath, gray_300, gray_800, list::{List, ListEvent, ListState}, purple_400, v_flex};
+
+use emoji::Emoji;
+use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription, Window, prelude::*};
+use gpui_component::{IndexPath, gray_800, list::{List, ListEvent, ListState}, purple_400, v_flex};
 use nonempty::NonEmpty;
 
 use crate::{Direction, JumpToSection, RotateTones, SelectedEmoji, ToneIndex, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
@@ -12,7 +12,7 @@ pub(crate) struct Picker {
 	pub(crate) focus_handle: FocusHandle,
 
 	/// The position of the selected emoji, if there is one
-	pub(crate) selected_emoji: Option<&'static EmojiEntry>,
+	pub(crate) selected_emoji: Option<&'static Emoji>,
 
 	/// The state of the list
 	pub(crate) list_state: Entity<ListState<EmojiListDelegate>>,
@@ -49,7 +49,7 @@ impl Picker {
 					// Convert IndexPath to global emoji index
 					if let Some(emoji) = picker.get_emoji_at_path(*ix, cx) {
 						picker.selected_emoji = Some(emoji);
-						cx.set_global(SelectedEmoji(Some(NonEmpty::new(emoji.emoji().clone()))));
+						cx.set_global(SelectedEmoji(Some(NonEmpty::new(emoji.clone()))));
 					}
 				}
 				ListEvent::Confirm(ix) => {
@@ -94,7 +94,7 @@ impl Picker {
 		Some(global_idx)
 	}
 
-	fn get_emoji_at_path(&self, ix: IndexPath, cx: &App) -> Option<&'static EmojiEntry> {
+	fn get_emoji_at_path(&self, ix: IndexPath, cx: &App) -> Option<&'static Emoji> {
 		let delegate = self.list_state.read(cx).delegate();
 		delegate
 			.emoji_legions
