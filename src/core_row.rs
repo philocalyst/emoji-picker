@@ -3,7 +3,6 @@ use gpui::{App, BoxShadow, Edges, Hsla, InteractiveElement, IntoElement, ParentE
 pub(crate) use gpui_component::{Selectable, h_flex};
 use gpui_component::{StyledExt, tooltip::Tooltip};
 
-
 use crate::{ToneIndex, insert_emoji};
 
 #[derive(IntoElement)]
@@ -38,6 +37,9 @@ impl RenderOnce for EmojiRow {
 				let tone_index = cx.global::<ToneIndex>();
 
 				// Get the right tone
+				// TODO: Need logic to determine if the tone is a special case, for which we'll
+				// just render plainly, encouraging the use of hover logic
+				// Also need logic to handle gendered emoji as well
 				let pure_emoji = if let Some(tones) = emoji.skin_tones {
 					tones.get(tone_index.0 as usize).unwrap_or(emoji).glyph
 				} else {

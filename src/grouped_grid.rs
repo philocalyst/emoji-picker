@@ -1,18 +1,23 @@
 use emoji::{Emoji, Group};
 use gpui::{App, Context, IntoElement, ParentElement, Styled, Task, Window, div};
-use gpui_component::{IndexPath, StyledExt, list::{ListDelegate, ListState}};
+use gpui_component::{
+	IndexPath, StyledExt,
+	list::{ListDelegate, ListState},
+};
 
 use crate::{core_row::EmojiRow, listgistics::EmojiListDelegate};
 
 pub(crate) struct GroupedEmojis {
-	pub(crate) group:  Group,
+	pub(crate) group: Group,
 	pub(crate) emojis: Vec<&'static Emoji>,
 }
 
 impl ListDelegate for EmojiListDelegate {
 	type Item = EmojiRow;
 
-	fn sections_count(&self, _: &App) -> usize { self.emoji_legions.len() }
+	fn sections_count(&self, _: &App) -> usize {
+		self.emoji_legions.len()
+	}
 
 	/// Get the total amount of items (emojis)
 	fn items_count(&self, section: usize, _: &App) -> usize {
@@ -28,10 +33,10 @@ impl ListDelegate for EmojiListDelegate {
 
 	// TODO: Don't render when searching
 	fn render_section_header(
-		&self,
+		&mut self,
 		section: usize,
 		_: &mut Window,
-		_: &mut App,
+		_: &mut Context<'_, ListState<Self>>,
 	) -> Option<impl IntoElement> {
 		// Don't show when searching, as the limited results make the headers feel
 		// cramped
@@ -46,7 +51,12 @@ impl ListDelegate for EmojiListDelegate {
 	}
 
 	/// Generate the relevant emoji for an index, as a struct to interpret
-	fn render_item(&self, ix: IndexPath, _: &mut Window, _: &mut App) -> Option<Self::Item> {
+	fn render_item(
+		&mut self,
+		ix: IndexPath,
+		_: &mut Window,
+		_: &mut Context<ListState<Self>>,
+	) -> Option<Self::Item> {
 		let section_emojis = &self.emoji_legions.get(ix.section)?.emojis;
 		let start_idx = ix.row * self.emojis_per_row;
 		let end_idx = (start_idx + self.emojis_per_row).min(section_emojis.len());
@@ -58,8 +68,8 @@ impl ListDelegate for EmojiListDelegate {
 		let row_emojis = section_emojis[start_idx..end_idx].to_vec();
 
 		Some(EmojiRow {
-			emojis:    row_emojis,
-			selected:  self.selected_index == Some(ix),
+			emojis: row_emojis,
+			selected: self.selected_index == Some(ix),
 			font_size: self.emoji_size,
 		})
 	}

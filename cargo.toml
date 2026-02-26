@@ -7,7 +7,6 @@ edition = "2024"
 emoji = { git = "https://github.com/philocalyst/emoji-rs"}
 emoji_search = {path = "../emoji_search"}
 gpui = "0.2.2"
-gpui-component = "0.4.2"
 unicode-segmentation = "1.12.0"
 cocoa = "0.26.0"
 imekit = "0.1.0"
@@ -20,6 +19,7 @@ enigo = "0.6.1"
 mouse_position = "0.1.4"
 nonempty = "0.12.0"
 serde = { version = "1.0.228", features = ["derive"] }
+gpui-component = "0.5.1"
 
 [package.metadata.packager]
 before-packaging-command = "cargo build --release"
