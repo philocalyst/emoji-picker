@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-emoji = { git = "https://github.com/philocalyst/emoji-rs"}
-emoji_search = {path = "../emoji_search"}
+emoji = { git = "https://github.com/philocalyst/emoji-rs" }
+emoji_search = { path = "../emoji_search" }
 gpui = "0.2.2"
 unicode-segmentation = "1.12.0"
 cocoa = "0.26.0"
@@ -28,5 +28,44 @@ identifier = "com.philocalyst.emoji"
 resources = ["Cargo.toml", "src"]
 
 [package.metadata.packager.macos]
-# Hide the app from the Dock
-background-app = true
+background-app = true # To try and avoid the app icon
+
+[package.metadata.bundle]
+identifier = "com.philocalyst.moji"
+
+icon = [
+  "assets/icons/32x32.png",
+  "assets/icons/128x128.png",
+  "assets/icons/128x128@2x.png",
+  "assets/icons/icon.icns",   # macOS
+  "assets/icons/icon.ico",    # Windows
+]
+
+copyright = "Copyright © 2026 philocalyst. All rights reserved."
+
+category = "Utility"
+
+short_description = "A fast, keyboard-driven emoji picker."
+
+long_description = """
+Moji is a lightweight emoji picker that lives in your menu bar.
+Trigger it with a global hotkey, search by name or keyword, and
+insert the emoji directly into any focused input field.
+"""
+
+# MIME types assigned to the MimeType= field of the .desktop file.
+linux_mime_types = ["text/plain"]
+
+linux_use_terminal = false
+
+deb_depends = [
+  "libxdo3",          # enigo uses xdo on Linux for input injection
+]
+
+# Minimum macOS version the app supports.
+osx_minimum_system_version = "13.0"
+
+# URL schemes this app registers as a handle.
+osx_url_schemes = ["com.philocalyst.moji"]
+
+osx_info_plist_exts = ["macos/Info.plist.extra"]
