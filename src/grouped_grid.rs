@@ -46,7 +46,17 @@ impl ListDelegate for EmojiListDelegate {
 
 		// Draw the current sections name as a psuedo-header
 		self.emoji_legions.get(section).map(|grouped| {
-			div().underline().text_lg().font_semibold().pb_2().pt_2().child(grouped.group.to_string())
+			let label = grouped
+				.group
+				.to_string()
+				.replace('-', " & ")
+				.to_uppercase()
+				.chars()
+				.flat_map(|c| if c == ' ' { vec![' ', ' '] } else { vec![c, ' '] })
+				.collect::<String>()
+				.trim_end()
+				.to_string();
+			div().underline().text_lg().font_semibold().pb_2().pt_2().child(label)
 		})
 	}
 
