@@ -1,11 +1,19 @@
-
-
 use emoji::Emoji;
-use gpui::{App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription, Window, prelude::*};
-use gpui_component::{IndexPath, gray_800, list::{List, ListEvent, ListState}, purple_400, v_flex};
+use gpui::{
+	App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription, Window,
+	prelude::*,
+};
+use gpui_component::{
+	IndexPath, gray_800,
+	list::{List, ListEvent, ListState},
+	purple_400, v_flex,
+};
 use nonempty::NonEmpty;
 
-use crate::{Direction, JumpToSection, RotateTones, SelectedEmoji, ToneIndex, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
+use crate::{
+	Direction, JumpToSection, RotateTones, SelectedEmoji, ToneIndex, listgistics::EmojiListDelegate,
+	utilities::calculate_emoji_sizing,
+};
 
 pub(crate) struct Picker {
 	/// The current state of focus
@@ -24,7 +32,9 @@ pub(crate) struct Picker {
 
 // Required boilerplate implementation
 impl Focusable for Picker {
-	fn focus_handle(&self, _: &App) -> FocusHandle { self.focus_handle.clone() }
+	fn focus_handle(&self, _: &App) -> FocusHandle {
+		self.focus_handle.clone()
+	}
 }
 
 impl Picker {
@@ -130,7 +140,6 @@ impl Render for Picker {
 		v_flex()
 			.bg(gray_800())
 			.text_color(purple_400())
-			.p_1()
 			.on_action(cx.listener(|_, directive: &RotateTones, _, cx| {
 				let current_index = cx.default_global::<ToneIndex>();
 
@@ -144,8 +153,6 @@ impl Render for Picker {
 			}))
 			.track_focus(&self.focus_handle(cx))
 			.size_full()
-			.child(
-				List::new(&self.list_state).scrollbar_visible(false).text_xl().p(self.padding).flex_1(),
-			)
+			.child(List::new(&self.list_state).scrollbar_visible(false).padding)
 	}
 }

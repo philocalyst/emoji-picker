@@ -1,5 +1,8 @@
 use emoji::Emoji;
-use gpui::{App, BoxShadow, Edges, Hsla, InteractiveElement, IntoElement, ParentElement, RenderOnce, StatefulInteractiveElement, Styled, Window, div, hsla, px};
+use gpui::{
+	App, BoxShadow, Edges, Hsla, InteractiveElement, IntoElement, ParentElement, RenderOnce,
+	StatefulInteractiveElement, Styled, Window, div, hsla, px,
+};
 pub(crate) use gpui_component::{Selectable, h_flex};
 use gpui_component::{StyledExt, tooltip::Tooltip};
 
@@ -23,14 +26,16 @@ impl Selectable for EmojiRow {
 		self
 	}
 
-	fn is_selected(&self) -> bool { self.selected }
+	fn is_selected(&self) -> bool {
+		self.selected
+	}
 }
 
 impl RenderOnce for EmojiRow {
 	fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
 		let between_row_padding = Edges { top: px(5.), bottom: px(5.), ..Default::default() };
 
-		let emoji_centering = Edges { left: px(2.), right: px(-2.), ..Default::default() };
+		let emoji_centering = Edges { left: px(1.), right: px(-1.), ..Default::default() };
 
 		h_flex().paddings(between_row_padding).gap_2().children(self.emojis.into_iter().map(
 			move |emoji| {
@@ -53,23 +58,23 @@ impl RenderOnce for EmojiRow {
 					.id(pure_emoji)
 					.shadow(vec![
 						BoxShadow {
-							color:         hsla(0.0, 0.0, 0.0, 0.25),
-							offset:        gpui::point(px(0.), px(1.)),
-							blur_radius:   px(2.),
+							color: hsla(0.0, 0.0, 0.0, 0.25),
+							offset: gpui::point(px(0.), px(1.)),
+							blur_radius: px(2.),
 							spread_radius: px(0.),
 						},
 						BoxShadow {
-							color:         hsla(0.0, 0.0, 0.0, 0.15),
-							offset:        gpui::point(px(0.), px(8.)),
-							blur_radius:   px(16.),
+							color: hsla(0.0, 0.0, 0.0, 0.15),
+							offset: gpui::point(px(0.), px(8.)),
+							blur_radius: px(16.),
 							spread_radius: px(-2.), // Negative spread makes it look more natural
 						},
 					])
 					.hover(move |div| {
 						div.shadow(vec![BoxShadow {
-							color:         hsla(0.78, 0.6, 0.5, 0.8),
-							offset:        gpui::point(gpui::px(0.), gpui::px(4.)),
-							blur_radius:   gpui::px(12.),
+							color: hsla(0.78, 0.6, 0.5, 0.8),
+							offset: gpui::point(gpui::px(0.), gpui::px(4.)),
+							blur_radius: gpui::px(12.),
 							spread_radius: gpui::px(7.),
 						}])
 					})

@@ -13,6 +13,9 @@ use nonempty::NonEmpty;
 use serde::Deserialize;
 use service_manager::*;
 
+// TODO: This needs finally implement the hold for options logic
+// Wanted to borrow inspiration from the mario kart screen, with genders you can move through
+// with arrow keys, and have tones in a 3x3?
 use crate::picker::Picker;
 
 mod core_row;
