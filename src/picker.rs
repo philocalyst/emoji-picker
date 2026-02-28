@@ -1,10 +1,10 @@
 use emoji::Emoji;
 use gpui::{
-	App, Context, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription, Window,
-	prelude::*,
+	App, Context, Edges, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription,
+	Window, prelude::*, px,
 };
 use gpui_component::{
-	IndexPath, gray_800,
+	IndexPath, StyledExt, gray_800,
 	list::{List, ListEvent, ListState},
 	purple_400, v_flex,
 };
@@ -137,6 +137,9 @@ fn rotate_tones(current_index: &mut ToneIndex, direction: Direction) {
 
 impl Render for Picker {
 	fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+		let mut emoji_edges = Edges::all(px(8.));
+		emoji_edges.right = px(-4.); // Some weird leftover padding on the right
+
 		v_flex()
 			.bg(gray_800())
 			.text_color(purple_400())
@@ -153,6 +156,6 @@ impl Render for Picker {
 			}))
 			.track_focus(&self.focus_handle(cx))
 			.size_full()
-			.child(List::new(&self.list_state).scrollbar_visible(false).padding)
+			.child(List::new(&self.list_state).scrollbar_visible(false).paddings(emoji_edges))
 	}
 }
