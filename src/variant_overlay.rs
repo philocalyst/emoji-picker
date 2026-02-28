@@ -1,31 +1,31 @@
 use emoji::Emoji;
-use gpui::{App, IntoElement, ParentElement, Styled, div};
-use gpui_component::ActiveTheme;
+use gpui::{App, InteractiveElement, IntoElement, ParentElement, Styled, div, hsla, prelude::*};
+use gpui_component::{ActiveTheme, h_flex};
 
-/// Renders the overlay showing skin tone variants for a selected emoji
-pub(crate) fn render(emoji: &Emoji, cx: &mut App) -> impl IntoElement {
+use crate::insert_emoji;
+
+/// Renders the list of skin tone variants for a selected emoji
+pub(crate) fn element(emoji: &Emoji, cx: &mut App) -> impl IntoElement {
 	if let Some(variants) = emoji.skin_tones {
-		div()
-			.absolute()
-			.top_0()
-			.left_0()
-			.w_full()
-			.h_full()
-			.flex()
-			.items_center()
-			.justify_center()
-			.child(
+		h_flex()
+			.gap_2()
+			.p_2()
+			.bg(cx.theme().background)
+			.children(variants.into_iter().map(|variant| {
 				div()
-					.p_4()
-					.rounded_md()
-					.shadow_lg()
-					.flex()
-					.flex_row()
-					.bg(cx.theme().background)
-					.gap_2()
-					.children(variants.into_iter().map(|variant| div().child(variant.glyph))),
-			)
+					.child(variant.glyph)
+					.text_size(gpui::px(24.))
+					.cursor_pointer()
+					.id("hi")
+					.hover(|s| s.bg(hsla(0., 0., 0., 0.1)))
+					.on_click(move |_, _, cx: &mut App| {
+						insert_emoji(variant.glyph);
+						// cx.window().shutdown();
+						cx.shutdown();
+					})
+			}))
+			.into_any_element()
 	} else {
-		div()
+		div().into_any_element()
 	}
 }

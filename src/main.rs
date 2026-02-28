@@ -112,6 +112,17 @@ impl Default for ToneIndex {
 	fn default() -> Self { Self(0) }
 }
 
+#[derive(Clone, Copy)]
+pub struct PopoverState {
+	pub open_emoji: Option<&'static Emoji>,
+}
+
+impl Default for PopoverState {
+	fn default() -> Self { Self { open_emoji: None } }
+}
+
+impl gpui::Global for PopoverState {}
+
 fn main() {
 	// Check if this instance is the service running in background
 	let args: Vec<String> = env::args().collect();
@@ -188,6 +199,7 @@ fn run_app() {
 	app.run(|cx: &mut App| {
 		// Set to yellow -- 0
 		cx.set_global::<ToneIndex>(ToneIndex(0));
+		cx.set_global::<PopoverState>(PopoverState::default());
 
 		theme::init(cx);
 
