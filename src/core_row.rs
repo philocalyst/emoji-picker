@@ -117,7 +117,7 @@ impl RenderOnce for EmojiRow {
 				if let Some(_) = emoji.skin_tones {
 					let popover_state = cx.global::<PopoverState>();
 					let is_open = popover_state.open_emoji == Some(emoji);
-					let popover_content = variant_overlay::element(emoji, cx);
+					let popover_content = variant_overlay::element(emoji, font_size);
 
 					let wrapper = EmojiWrapper {
 						content: base_element
