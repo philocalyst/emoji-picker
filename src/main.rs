@@ -223,9 +223,20 @@ fn run_app() {
 				[
 						KeyBinding::new("super-q", Quit, None),
 						KeyBinding::new("super-w", Quit, None),
-						KeyBinding::new("escape", Quit, None),
+						KeyBinding::new("escape", picker::Cancel, None),
 						KeyBinding::new("N", RotateTones { direction: Direction::Backward }, None),
 						KeyBinding::new("n", RotateTones { direction: Direction::Forward }, None),
+						KeyBinding::new("up", picker::MoveUp, None),
+						KeyBinding::new("down", picker::MoveDown, None),
+						KeyBinding::new("left", picker::MoveLeft, None),
+						KeyBinding::new("right", picker::MoveRight, None),
+						KeyBinding::new("k", picker::MoveUp, None),
+						KeyBinding::new("j", picker::MoveDown, None),
+						KeyBinding::new("h", picker::MoveLeft, None),
+						KeyBinding::new("l", picker::MoveRight, None),
+						KeyBinding::new("space", picker::SelectCurrent, None),
+						KeyBinding::new("shift-space", picker::OpenSecondary, None),
+						KeyBinding::new("/", picker::FocusSearch, None),
 				],
 				jumps: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 		);
@@ -365,7 +376,7 @@ fn initialize(cx: &mut App) {
 	.unwrap();
 }
 
-fn insert_emoji(emoji: &str) {
+pub(crate) fn insert_emoji(emoji: &str) {
 	let emoji_owned = emoji.to_string();
 	thread::spawn(move || {
 		// This is TOTALLY a race condition but it's also the BEST solution I have

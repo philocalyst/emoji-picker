@@ -77,9 +77,16 @@ impl ListDelegate for EmojiListDelegate {
 
 		let row_emojis = section_emojis[start_idx..end_idx].to_vec();
 
+		let is_selected_row = self
+			.selected_index
+			.map(|sel| sel.section == ix.section && sel.row == ix.row)
+			.unwrap_or(false);
+		let selected_col = if is_selected_row { self.selected_index.map(|sel| sel.column) } else { None };
+
 		Some(EmojiRow {
 			emojis: row_emojis,
-			selected: self.selected_index == Some(ix),
+			selected: is_selected_row,
+			selected_column: selected_col,
 			font_size: self.emoji_size,
 		})
 	}

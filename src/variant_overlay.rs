@@ -1,9 +1,9 @@
 use emoji::Emoji;
 use gpui::{
-	App, InteractiveElement, IntoElement, ParentElement, Pixels, Styled, blue, div, hsla, prelude::*,
-	transparent_black,
+	App, InteractiveElement, IntoElement, ParentElement, Pixels, StatefulInteractiveElement, Styled,
+	div, hsla,
 };
-use gpui_component::{ActiveTheme, gray, gray_300, h_flex};
+use gpui_component::{gray_300, h_flex};
 
 use crate::insert_emoji;
 

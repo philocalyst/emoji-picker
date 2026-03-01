@@ -5,15 +5,22 @@ use gpui::{
 };
 use gpui_component::{
 	IndexPath, StyledExt, gray_800,
+	input::{Input, InputEvent, InputState},
 	list::{List, ListEvent, ListState},
 	purple_400, v_flex,
 };
 use nonempty::NonEmpty;
 
 use crate::{
-	Direction, JumpToSection, RotateTones, SelectedEmoji, ToneIndex, listgistics::EmojiListDelegate,
-	utilities::calculate_emoji_sizing,
+	Direction, JumpToSection, PopoverState, Quit, RotateTones, SelectedEmoji, ToneIndex,
+	insert_emoji, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing,
 };
+use gpui::actions;
+
+actions!(
+	picker,
+	[MoveUp, MoveDown, MoveLeft, MoveRight, SelectCurrent, OpenSecondary, FocusSearch, Cancel]
+);
 
 pub(crate) struct Picker {
 	/// The current state of focus
@@ -46,7 +53,7 @@ impl Picker {
 		// but clamped to a reasonable range.
 		let sizing = calculate_emoji_sizing(container_width, rem_size);
 
-		let last_selected = cx.default_global::<SelectedEmoji>().0.clone();
+		let _last_selected = cx.default_global::<SelectedEmoji>().0.clone();
 
 		// Initialize the list
 		let delegate = EmojiListDelegate::new(sizing.emojis_per_row, sizing.emoji_size);
@@ -124,6 +131,75 @@ impl Picker {
 			);
 		});
 	}
+
+	fn update_selection<F>(&self, window: &mut Window, cx: &mut App, f: F)
+	where
+		F: FnOnce(&mut EmojiListDelegate),
+	{
+		self.list_state.update(cx, |list, cx| {
+			f(list.delegate_mut());
+			if let Some(ix) = list.delegate().selected_index {
+				list.scroll_to_item(ix, gpui::ScrollStrategy::Center, window, cx);
+			}
+			cx.notify();
+		});
+	}
+
+	fn select_current(&self, _window: &mut Window, cx: &mut App) {
+		let selected_emoji = self
+			.list_state
+			.read(cx)
+			.delegate()
+			.selected_index
+			.and_then(|ix| self.get_emoji_at_path(ix, cx));
+
+		if let Some(emoji) = selected_emoji {
+			insert_emoji(emoji.glyph);
+			cx.shutdown();
+		}
+	}
+
+	fn open_secondary(&self, _window: &mut Window, cx: &mut App) {
+		let selected_emoji = self
+			.list_state
+			.read(cx)
+			.delegate()
+			.selected_index
+			.and_then(|ix| self.get_emoji_at_path(ix, cx));
+
+		if let Some(emoji) = selected_emoji {
+			if emoji.skin_tones.is_some() {
+				cx.update_global::<PopoverState, _>(|state, cx| {
+					state.open_emoji = Some(emoji);
+				});
+			}
+		}
+	}
+
+	fn focus_search(&self, window: &mut Window, cx: &mut App) {
+		self.list_state.update(cx, |input, cx| {
+			input.focus(window, cx);
+		});
+	}
+
+	fn cancel(&self, window: &mut Window, cx: &mut App) {
+		let popover_state = cx.global::<PopoverState>();
+		if popover_state.open_emoji.is_some() {
+			cx.update_global::<PopoverState, _>(|state, _| {
+				state.open_emoji = None;
+			});
+			return;
+		}
+
+		if self.list_state.read(cx).focus_handle(cx).is_focused(window) {
+			// Focus list after blurring search
+			// The Picker component tracks focus.
+			window.focus(&self.focus_handle);
+			return;
+		}
+
+		cx.dispatch_action(&Quit);
+	}
 }
 
 fn rotate_tones(current_index: &mut ToneIndex, direction: Direction) {
@@ -143,7 +219,7 @@ impl Render for Picker {
 		v_flex()
 			.bg(gray_800())
 			.text_color(purple_400())
-			.on_action(cx.listener(|_, directive: &RotateTones, _, cx| {
+			.on_action(cx.listener(move |_, directive: &RotateTones, _, cx| {
 				let current_index = cx.default_global::<ToneIndex>();
 
 				current_index.rotate(directive.direction.clone());
@@ -153,6 +229,30 @@ impl Render for Picker {
 			}))
 			.on_action(cx.listener(|this, section: &JumpToSection, window, cx| {
 				this.jump_to_section(section.number, window, cx);
+			}))
+			.on_action(cx.listener(|this, _: &MoveUp, window, cx| {
+				this.update_selection(window, cx, |d| d.move_up());
+			}))
+			.on_action(cx.listener(|this, _: &MoveDown, window, cx| {
+				this.update_selection(window, cx, |d| d.move_down());
+			}))
+			.on_action(cx.listener(|this, _: &MoveLeft, window, cx| {
+				this.update_selection(window, cx, |d| d.move_left());
+			}))
+			.on_action(cx.listener(|this, _: &MoveRight, window, cx| {
+				this.update_selection(window, cx, |d| d.move_right());
+			}))
+			.on_action(cx.listener(|this, _: &SelectCurrent, window, cx| {
+				this.select_current(window, cx);
+			}))
+			.on_action(cx.listener(|this, _: &OpenSecondary, window, cx| {
+				this.open_secondary(window, cx);
+			}))
+			.on_action(cx.listener(|this, _: &FocusSearch, window, cx| {
+				this.focus_search(window, cx);
+			}))
+			.on_action(cx.listener(|this, _: &Cancel, window, cx| {
+				this.cancel(window, cx);
 			}))
 			.track_focus(&self.focus_handle(cx))
 			.size_full()
