@@ -1,5 +1,5 @@
 use emoji::Emoji;
-use gpui::{AnyElement, App, BorrowAppContext, BoxShadow, Div, Edges, Hsla, InteractiveElement, IntoElement, MouseButton, ParentElement, RenderOnce, StatefulInteractiveElement, StyleRefinement, Styled, Window, div, hsla, px};
+use gpui::{AnyElement, App, BorrowAppContext, BoxShadow, Edges, FocusHandle, Hsla, InteractiveElement, IntoElement, MouseButton, ParentElement, RenderOnce, StatefulInteractiveElement, StyleRefinement, Styled, Window, div, hsla, px};
 use gpui_component::{Selectable, StyledExt, h_flex, popover::Popover, tooltip::Tooltip};
 
 use crate::{PopoverState, ToneIndex, insert_emoji, variant_overlay};
@@ -33,6 +33,9 @@ pub(crate) struct EmojiRow {
 	/// The Emoji contained by the row
 	pub(crate) emojis: Vec<&'static Emoji>,
 
+	/// Our unique focus handle
+	pub(crate) body_focus_handle: FocusHandle,
+
 	/// Whether the row has been selected
 	pub(crate) selected: bool,
 
@@ -63,8 +66,12 @@ impl RenderOnce for EmojiRow {
 		let selected_row = self.contains_selection;
 		let selected_col = self.selected_column;
 
-		h_flex().paddings(between_row_padding).gap_2().children(
-			self.emojis.into_iter().enumerate().map(move |(idx, emoji)| {
+		h_flex()
+			.key_context("ListBody")
+			.track_focus(&self.body_focus_handle)
+			.paddings(between_row_padding)
+			.gap_2()
+			.children(self.emojis.into_iter().enumerate().map(move |(idx, emoji)| {
 				let tone_index = cx.global::<ToneIndex>();
 				let is_selected = selected_row && selected_col == Some(idx);
 
@@ -168,7 +175,6 @@ impl RenderOnce for EmojiRow {
 						})
 						.into_any_element()
 				}
-			}),
-		)
+			}))
 	}
 }

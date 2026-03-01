@@ -6,13 +6,12 @@ use enigo::{Enigo, Keyboard, Settings};
 #[cfg(target_os = "macos")]
 use global_hotkey::hotkey::Modifiers;
 use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey}};
-use gpui::{Action, AnyWindowHandle, App, AppContext, Application, Bounds, Entity, Focusable, Hsla, KeyBinding, Pixels, Size, WindowBounds, WindowKind, WindowOptions, actions, point, px, size};
+use gpui::{Action, AnyWindowHandle, App, AppContext, Application, Bounds, Entity, Hsla, KeyBinding, Pixels, Size, WindowBounds, WindowKind, WindowOptions, actions, point, px, size};
 use gpui_component::{PixelsExt, Root, ThemeColor, theme::{self, Theme, ThemeMode}};
 use mouse_position::mouse_position::Mouse;
 use nonempty::NonEmpty;
 use serde::Deserialize;
 use service_manager::*;
-use tracing::{Level, info};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 // TODO: This needs finally implement the hold for options logic
@@ -69,8 +68,10 @@ pub enum Direction {
 	Backward,
 }
 
+use Direction::{Backward, Forward};
+
 actions!(theme, [SwitchToLight, SwitchToDark]);
-actions!(text_input, [Quit,]);
+actions!(all, [Quit, Cancel]);
 
 static EMOJI_DATA: LazyLock<emoji_search::types::EmojiData> =
 	LazyLock::new(|| emoji_search::types::load_emoji_data().unwrap());
@@ -211,22 +212,27 @@ fn run_app() {
 		bind_keys!(
 				cx,
 				[
-						KeyBinding::new("super-q", Quit, None),
-						KeyBinding::new("super-w", Quit, None),
-						KeyBinding::new("escape", picker::Cancel, None),
-						KeyBinding::new("N", RotateTones { direction: Direction::Backward }, None),
-						KeyBinding::new("n", RotateTones { direction: Direction::Forward }, None),
-						KeyBinding::new("up", picker::MoveUp, None),
-						KeyBinding::new("down", picker::MoveDown, None),
-						KeyBinding::new("left", picker::MoveLeft, None),
-						KeyBinding::new("right", picker::MoveRight, None),
-						KeyBinding::new("k", picker::MoveUp, None),
-						KeyBinding::new("j", picker::MoveDown, None),
-						KeyBinding::new("h", picker::MoveLeft, None),
-						KeyBinding::new("l", picker::MoveRight, None),
-						KeyBinding::new("space", picker::SelectCurrent, None),
-						KeyBinding::new("shift-space", picker::OpenSecondary, None),
-						KeyBinding::new("/", picker::FocusSearch, None),
+					// Global bindings
+					KeyBinding::new("super-q", Quit, None),
+					KeyBinding::new("super-w", Quit, None),
+					KeyBinding::new("escape", Cancel, None),
+					KeyBinding::new("N", RotateTones { direction: Backward }, None),
+					KeyBinding::new("n", RotateTones { direction: Forward }, None),
+
+					// Picker-scoped bindings
+					KeyBinding::new("up", picker::MoveUp, Some("List")),
+					KeyBinding::new("down", picker::MoveDown, Some("List")),
+					KeyBinding::new("left", picker::MoveLeft, Some("List")),
+					KeyBinding::new("right", picker::MoveRight, Some("List")),
+					KeyBinding::new("space", picker::SelectCurrent, Some("List")),
+					KeyBinding::new("shift-space", picker::OpenSecondary, Some("List")),
+
+					KeyBinding::new("k", picker::MoveUp, Some("ListBody")),
+					KeyBinding::new("j", picker::MoveDown, Some("ListBody")),
+					KeyBinding::new("h", picker::MoveLeft, Some("ListBody")),
+					KeyBinding::new("l", picker::MoveRight, Some("ListBody")),
+					KeyBinding::new("/", picker::FocusSearch, Some("ListBody")),
+
 				],
 				jumps: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 		);
@@ -353,7 +359,8 @@ fn initialize(cx: &mut App) {
 			let picker = cx.new(|cx| Picker::new(window, cx));
 
 			window.activate_window();
-			window.focus(&picker.read(cx).focus_handle(cx));
+			let list_state = picker.read(cx).list_state.clone();
+			list_state.update(cx, |list, cx| list.focus(window, cx));
 
 			cx.set_global::<AppState>(AppState {
 				picker: picker.clone(),

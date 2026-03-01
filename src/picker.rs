@@ -1,9 +1,9 @@
 use emoji::Emoji;
 use gpui::{App, Context, Edges, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription, Window, actions, prelude::*, px};
-use gpui_component::{IndexPath, StyledExt, gray_800, input::{Input, InputEvent, InputState}, list::{List, ListEvent, ListState}, purple_400, v_flex};
+use gpui_component::{IndexPath, StyledExt, gray_800, list::{List, ListEvent, ListState}, purple_400, v_flex};
 use nonempty::NonEmpty;
 
-use crate::{Direction, JumpToSection, PopoverState, Quit, RotateTones, SelectedEmoji, ToneIndex, insert_emoji, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
+use crate::{Cancel, JumpToSection, PopoverState, Quit, RotateTones, SelectedEmoji, ToneIndex, insert_emoji, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
 
 actions!(picker, [
 	MoveUp,
@@ -12,13 +12,15 @@ actions!(picker, [
 	MoveRight,
 	SelectCurrent,
 	OpenSecondary,
-	FocusSearch,
-	Cancel
+	FocusSearch
 ]);
 
 pub(crate) struct Picker {
 	/// The current state of focus
 	pub(crate) focus_handle: FocusHandle,
+
+	/// Body focus handle
+	pub(crate) body_focus_handle: FocusHandle,
 
 	/// The position of the selected emoji, if there is one
 	pub(crate) selected_emoji: Option<&'static Emoji>,
@@ -47,8 +49,11 @@ impl Picker {
 
 		let _last_selected = cx.default_global::<SelectedEmoji>().0.clone();
 
+		let body_focus_handle = cx.focus_handle();
+
 		// Initialize the list
-		let delegate = EmojiListDelegate::new(sizing.emojis_per_row, sizing.emoji_size);
+		let delegate =
+			EmojiListDelegate::new(sizing.emojis_per_row, sizing.emoji_size, body_focus_handle.clone());
 		let list_state = cx.new(|cx| ListState::new(delegate, window, cx).searchable(true));
 
 		// Handle the events on the list
@@ -75,32 +80,12 @@ impl Picker {
 
 		Self {
 			focus_handle: cx.focus_handle(),
+			body_focus_handle,
 			selected_emoji: None,
 			list_state,
 			padding: sizing.list_padding,
 			_subscription,
 		}
-	}
-
-	fn index_path_to_emoji_index(&self, ix: IndexPath, cx: &App) -> Option<usize> {
-		// Get our representative
-		let list = self.list_state.read(cx).delegate();
-
-		// Calculate global emoji index from IndexPath using an updating standin
-		let mut global_idx = 0;
-
-		// Add all emojis from previous sections
-		global_idx +=
-			list.emoji_legions.iter().take(ix.section).map(|legion| legion.emojis.len()).sum::<usize>();
-
-		// Total, respcting the existing row progress
-		let starting_row = ix.row * list.emojis_per_row;
-		global_idx += starting_row;
-
-		// Add the columns up to this point
-		global_idx += ix.column;
-
-		Some(global_idx)
 	}
 
 	fn get_emoji_at_path(&self, ix: IndexPath, cx: &App) -> Option<&'static Emoji> {
@@ -161,7 +146,7 @@ impl Picker {
 
 		if let Some(emoji) = selected_emoji {
 			if emoji.skin_tones.is_some() {
-				cx.update_global::<PopoverState, _>(|state, cx| {
+				cx.update_global::<PopoverState, _>(|state, _cx| {
 					state.open_emoji = Some(emoji);
 				});
 			}
@@ -186,21 +171,12 @@ impl Picker {
 		if self.list_state.read(cx).focus_handle(cx).is_focused(window) {
 			// Focus list after blurring search
 			// The Picker component tracks focus.
-			window.focus(&self.focus_handle);
+			self.body_focus_handle.focus(window);
 			return;
 		}
 
 		cx.dispatch_action(&Quit);
 	}
-}
-
-fn rotate_tones(current_index: &mut ToneIndex, direction: Direction) {
-	const MAX: u8 = 6;
-
-	match direction {
-		Direction::Forward => current_index.0 = (current_index.0 + 1) % MAX,
-		Direction::Backward => current_index.0 = (current_index.0 + MAX - 1) % MAX,
-	};
 }
 
 impl Render for Picker {
@@ -247,6 +223,7 @@ impl Render for Picker {
 				this.cancel(window, cx);
 			}))
 			.track_focus(&self.focus_handle(cx))
+			.key_context("Picker")
 			.size_full()
 			.child(List::new(&self.list_state).scrollbar_visible(false).paddings(emoji_edges))
 	}

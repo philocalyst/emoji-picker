@@ -1,20 +1,27 @@
-use gpui::Pixels;
+use gpui::{FocusHandle, Pixels};
 use gpui_component::IndexPath;
 use tracing::info;
 
 use crate::{grouped_grid::GroupedEmojis, utilities::{grouped_emojis, search_emojis}};
 
 pub(crate) struct EmojiListDelegate {
-	pub(crate) emoji_legions:  Vec<GroupedEmojis>,
-	pub(crate) emojis_per_row: usize,
-	pub(crate) selected_index: Option<IndexPath>,
-	pub(crate) query:          String,
-	pub(crate) emoji_size:     Pixels,
+	pub(crate) emoji_legions:     Vec<GroupedEmojis>,
+	pub(crate) emojis_per_row:    usize,
+	pub(crate) selected_index:    Option<IndexPath>,
+	pub(crate) query:             String,
+	/// Body focus handle
+	pub(crate) body_focus_handle: FocusHandle,
+	pub(crate) emoji_size:        Pixels,
 }
 
 impl EmojiListDelegate {
-	pub(crate) fn new(emojis_per_row: usize, emoji_size: Pixels) -> Self {
+	pub(crate) fn new(
+		emojis_per_row: usize,
+		emoji_size: Pixels,
+		body_focus_handle: FocusHandle,
+	) -> Self {
 		Self {
+			body_focus_handle,
 			emoji_legions: grouped_emojis(),
 			emoji_size,
 			emojis_per_row,

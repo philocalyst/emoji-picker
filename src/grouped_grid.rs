@@ -85,6 +85,7 @@ impl ListDelegate for EmojiListDelegate {
 			contains_selection: is_selected_row,
 			selected_column:    selected_col,
 			font_size:          self.emoji_size,
+			body_focus_handle:  self.body_focus_handle.clone(),
 		})
 	}
 
