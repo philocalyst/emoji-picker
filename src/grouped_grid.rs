@@ -1,23 +1,18 @@
 use emoji::{Emoji, Group};
 use gpui::{App, Context, IntoElement, ParentElement, Styled, Task, Window, div};
-use gpui_component::{
-	IndexPath, StyledExt,
-	list::{ListDelegate, ListState},
-};
+use gpui_component::{IndexPath, StyledExt, list::{ListDelegate, ListState}};
 
 use crate::{core_row::EmojiRow, listgistics::EmojiListDelegate};
 
 pub(crate) struct GroupedEmojis {
-	pub(crate) group: Group,
+	pub(crate) group:  Group,
 	pub(crate) emojis: Vec<&'static Emoji>,
 }
 
 impl ListDelegate for EmojiListDelegate {
 	type Item = EmojiRow;
 
-	fn sections_count(&self, _: &App) -> usize {
-		self.emoji_legions.len()
-	}
+	fn sections_count(&self, _: &App) -> usize { self.emoji_legions.len() }
 
 	/// Get the total amount of items (emojis)
 	fn items_count(&self, section: usize, _: &App) -> usize {
@@ -81,13 +76,15 @@ impl ListDelegate for EmojiListDelegate {
 			.selected_index
 			.map(|sel| sel.section == ix.section && sel.row == ix.row)
 			.unwrap_or(false);
-		let selected_col = if is_selected_row { self.selected_index.map(|sel| sel.column) } else { None };
+		let selected_col =
+			if is_selected_row { self.selected_index.map(|sel| sel.column) } else { None };
 
 		Some(EmojiRow {
-			emojis: row_emojis,
-			selected: is_selected_row,
-			selected_column: selected_col,
-			font_size: self.emoji_size,
+			emojis:             row_emojis,
+			selected:           is_selected_row,
+			contains_selection: is_selected_row,
+			selected_column:    selected_col,
+			font_size:          self.emoji_size,
 		})
 	}
 

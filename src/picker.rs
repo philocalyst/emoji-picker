@@ -1,26 +1,20 @@
 use emoji::Emoji;
-use gpui::{
-	App, Context, Edges, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription,
-	Window, prelude::*, px,
-};
-use gpui_component::{
-	IndexPath, StyledExt, gray_800,
-	input::{Input, InputEvent, InputState},
-	list::{List, ListEvent, ListState},
-	purple_400, v_flex,
-};
+use gpui::{App, Context, Edges, Entity, FocusHandle, Focusable, InteractiveElement, Pixels, Subscription, Window, actions, prelude::*, px};
+use gpui_component::{IndexPath, StyledExt, gray_800, input::{Input, InputEvent, InputState}, list::{List, ListEvent, ListState}, purple_400, v_flex};
 use nonempty::NonEmpty;
 
-use crate::{
-	Direction, JumpToSection, PopoverState, Quit, RotateTones, SelectedEmoji, ToneIndex,
-	insert_emoji, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing,
-};
-use gpui::actions;
+use crate::{Direction, JumpToSection, PopoverState, Quit, RotateTones, SelectedEmoji, ToneIndex, insert_emoji, listgistics::EmojiListDelegate, utilities::calculate_emoji_sizing};
 
-actions!(
-	picker,
-	[MoveUp, MoveDown, MoveLeft, MoveRight, SelectCurrent, OpenSecondary, FocusSearch, Cancel]
-);
+actions!(picker, [
+	MoveUp,
+	MoveDown,
+	MoveLeft,
+	MoveRight,
+	SelectCurrent,
+	OpenSecondary,
+	FocusSearch,
+	Cancel
+]);
 
 pub(crate) struct Picker {
 	/// The current state of focus
@@ -39,9 +33,7 @@ pub(crate) struct Picker {
 
 // Required boilerplate implementation
 impl Focusable for Picker {
-	fn focus_handle(&self, _: &App) -> FocusHandle {
-		self.focus_handle.clone()
-	}
+	fn focus_handle(&self, _: &App) -> FocusHandle { self.focus_handle.clone() }
 }
 
 impl Picker {

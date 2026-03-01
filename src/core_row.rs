@@ -1,15 +1,11 @@
 use emoji::Emoji;
-use gpui::{
-	AnyElement, App, BorrowAppContext, BoxShadow, Div, Edges, Hsla, InteractiveElement, IntoElement,
-	MouseButton, ParentElement, RenderOnce, StatefulInteractiveElement, StyleRefinement, Styled,
-	Window, div, hsla, px,
-};
+use gpui::{AnyElement, App, BorrowAppContext, BoxShadow, Div, Edges, Hsla, InteractiveElement, IntoElement, MouseButton, ParentElement, RenderOnce, StatefulInteractiveElement, StyleRefinement, Styled, Window, div, hsla, px};
 use gpui_component::{Selectable, StyledExt, h_flex, popover::Popover, tooltip::Tooltip};
 
 use crate::{PopoverState, ToneIndex, insert_emoji, variant_overlay};
 
 struct EmojiWrapper {
-	content: AnyElement,
+	content:  AnyElement,
 	selected: bool,
 }
 
@@ -19,23 +15,17 @@ impl Selectable for EmojiWrapper {
 		self
 	}
 
-	fn is_selected(&self) -> bool {
-		self.selected
-	}
+	fn is_selected(&self) -> bool { self.selected }
 }
 
 impl IntoElement for EmojiWrapper {
 	type Element = AnyElement;
 
-	fn into_element(self) -> Self::Element {
-		self.content
-	}
+	fn into_element(self) -> Self::Element { self.content }
 }
 
 impl RenderOnce for EmojiWrapper {
-	fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-		self.content
-	}
+	fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement { self.content }
 }
 
 #[derive(IntoElement)]
@@ -45,6 +35,9 @@ pub(crate) struct EmojiRow {
 
 	/// Whether the row has been selected
 	pub(crate) selected: bool,
+
+	/// Whether the row contains the selected item (calculated manually)
+	pub(crate) contains_selection: bool,
 
 	/// The selected column, if any
 	pub(crate) selected_column: Option<usize>,
@@ -59,9 +52,7 @@ impl Selectable for EmojiRow {
 		self
 	}
 
-	fn is_selected(&self) -> bool {
-		self.selected
-	}
+	fn is_selected(&self) -> bool { self.selected }
 }
 
 impl RenderOnce for EmojiRow {
@@ -69,7 +60,7 @@ impl RenderOnce for EmojiRow {
 		let between_row_padding = Edges { top: px(5.), bottom: px(5.), ..Default::default() };
 		let emoji_centering = Edges { left: px(1.), right: px(-1.), ..Default::default() };
 		let font_size = self.font_size;
-		let selected_row = self.selected;
+		let selected_row = self.contains_selection;
 		let selected_col = self.selected_column;
 
 		h_flex().paddings(between_row_padding).gap_2().children(
@@ -94,24 +85,24 @@ impl RenderOnce for EmojiRow {
 					.id(pure_emoji)
 					.shadow(vec![
 						BoxShadow {
-							color: hsla(0.0, 0.0, 0.0, 0.25),
-							offset: gpui::point(px(0.), px(1.)),
-							blur_radius: px(2.),
+							color:         hsla(0.0, 0.0, 0.0, 0.25),
+							offset:        gpui::point(px(0.), px(1.)),
+							blur_radius:   px(2.),
 							spread_radius: px(0.),
 						},
 						BoxShadow {
-							color: hsla(0.0, 0.0, 0.0, 0.15),
-							offset: gpui::point(px(0.), px(8.)),
-							blur_radius: px(16.),
+							color:         hsla(0.0, 0.0, 0.0, 0.15),
+							offset:        gpui::point(px(0.), px(8.)),
+							blur_radius:   px(16.),
 							spread_radius: px(-2.), // Negative spread makes it look more natural
 						},
 					]);
 
 				if is_selected {
 					base_element = base_element.bg(hsla(0.0, 0.0, 1.0, 0.2)).shadow(vec![BoxShadow {
-						color: hsla(0.78, 0.6, 0.5, 0.8),
-						offset: gpui::point(gpui::px(0.), gpui::px(4.)),
-						blur_radius: gpui::px(12.),
+						color:         hsla(0.78, 0.6, 0.5, 0.8),
+						offset:        gpui::point(gpui::px(0.), gpui::px(4.)),
+						blur_radius:   gpui::px(12.),
 						spread_radius: gpui::px(7.),
 					}]);
 				}
@@ -119,9 +110,9 @@ impl RenderOnce for EmojiRow {
 				let base_element = base_element
 					.hover(move |s: StyleRefinement| {
 						s.shadow(vec![BoxShadow {
-							color: hsla(0.78, 0.6, 0.5, 0.8),
-							offset: gpui::point(gpui::px(0.), gpui::px(4.)),
-							blur_radius: gpui::px(12.),
+							color:         hsla(0.78, 0.6, 0.5, 0.8),
+							offset:        gpui::point(gpui::px(0.), gpui::px(4.)),
+							blur_radius:   gpui::px(12.),
 							spread_radius: gpui::px(7.),
 						}])
 					})
@@ -136,7 +127,7 @@ impl RenderOnce for EmojiRow {
 					let popover_content = variant_overlay::element(emoji, font_size);
 
 					let wrapper = EmojiWrapper {
-						content: base_element
+						content:  base_element
 							.on_mouse_down(MouseButton::Right, move |_, _, cx: &mut App| {
 								cx.update_global::<PopoverState, _>(|state, _| {
 									state.open_emoji = Some(emoji);

@@ -6,8 +6,8 @@ use crate::{SEARCHER, grouped_grid::GroupedEmojis};
 /// Calculates emoji sizing parameters to prevent overflow
 pub(crate) struct EmojiSizing {
 	pub emojis_per_row: usize,
-	pub emoji_size: Pixels,
-	pub list_padding: Pixels,
+	pub emoji_size:     Pixels,
+	pub list_padding:   Pixels,
 }
 
 /// Calculates the number of emojis that fit per row based on container width
@@ -29,8 +29,8 @@ pub(crate) fn calculate_emoji_sizing(container_width: f64, rem_size: Pixels) -> 
 	// Try different emoji counts to find the best fit
 	let mut best_size = EmojiSizing {
 		emojis_per_row: MIN_EMOJIS_PER_ROW,
-		emoji_size: Pixels::from(0.0),
-		list_padding: Pixels::from(0.0),
+		emoji_size:     Pixels::from(0.0),
+		list_padding:   Pixels::from(0.0),
 	};
 
 	for emojis_per_row in MIN_EMOJIS_PER_ROW..=MAX_EMOJIS_PER_ROW {
