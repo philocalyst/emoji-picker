@@ -1,6 +1,6 @@
-
 use gpui::Pixels;
 use gpui_component::IndexPath;
+use tracing::info;
 
 use crate::{grouped_grid::GroupedEmojis, utilities::{grouped_emojis, search_emojis}};
 
@@ -38,7 +38,7 @@ impl EmojiListDelegate {
 	}
 
 	pub(crate) fn move_right(&mut self) {
-		println!("Move Right: {:?}", self.selected_index);
+		info!("Move Right: {:?}", self.selected_index);
 		if let Some(mut ix) = self.selected_index {
 			if let Some(section) = self.emoji_legions.get(ix.section) {
 				let section_len = section.emojis.len();
@@ -53,21 +53,17 @@ impl EmojiListDelegate {
 					}
 					self.selected_index = Some(ix);
 				} else if ix.section + 1 < self.emoji_legions.len() {
-					self.selected_index = Some(IndexPath {
-						section: ix.section + 1,
-						row: 0,
-						column: 0,
-					});
+					self.selected_index = Some(IndexPath { section: ix.section + 1, row: 0, column: 0 });
 				}
 			}
 		} else if !self.emoji_legions.is_empty() {
 			self.selected_index = Some(IndexPath { section: 0, row: 0, column: 0 });
 		}
-		println!("Moved Right to: {:?}", self.selected_index);
+		info!("Moved Right to: {:?}", self.selected_index);
 	}
 
 	pub(crate) fn move_left(&mut self) {
-		println!("Move Left: {:?}", self.selected_index);
+		info!("Move Left: {:?}", self.selected_index);
 		if let Some(mut ix) = self.selected_index {
 			if ix.column > 0 {
 				ix.column -= 1;
@@ -84,22 +80,19 @@ impl EmojiListDelegate {
 						let last_idx = count - 1;
 						let last_row = last_idx / self.emojis_per_row;
 						let last_col = last_idx % self.emojis_per_row;
-						self.selected_index = Some(IndexPath {
-							section: prev_section_idx,
-							row: last_row,
-							column: last_col,
-						});
+						self.selected_index =
+							Some(IndexPath { section: prev_section_idx, row: last_row, column: last_col });
 					}
 				}
 			}
 		} else if !self.emoji_legions.is_empty() {
 			self.selected_index = Some(IndexPath { section: 0, row: 0, column: 0 });
 		}
-		println!("Moved Left to: {:?}", self.selected_index);
+		info!("Moved Left to: {:?}", self.selected_index);
 	}
 
 	pub(crate) fn move_down(&mut self) {
-		println!("Move Down: {:?}", self.selected_index);
+		info!("Move Down: {:?}", self.selected_index);
 		if let Some(mut ix) = self.selected_index {
 			if let Some(section) = self.emoji_legions.get(ix.section) {
 				let section_len = section.emojis.len();
@@ -116,22 +109,19 @@ impl EmojiListDelegate {
 					let next_sec_len = self.emoji_legions[ix.section + 1].emojis.len();
 					if next_sec_len > 0 {
 						let next_col = ix.column.min(next_sec_len - 1).min(self.emojis_per_row - 1);
-						self.selected_index = Some(IndexPath {
-							section: ix.section + 1,
-							row: 0,
-							column: next_col,
-						});
+						self.selected_index =
+							Some(IndexPath { section: ix.section + 1, row: 0, column: next_col });
 					}
 				}
 			}
 		} else if !self.emoji_legions.is_empty() {
 			self.selected_index = Some(IndexPath { section: 0, row: 0, column: 0 });
 		}
-		println!("Moved Down to: {:?}", self.selected_index);
+		info!("Moved Down to: {:?}", self.selected_index);
 	}
 
 	pub(crate) fn move_up(&mut self) {
-		println!("Move Up: {:?}", self.selected_index);
+		info!("Move Up: {:?}", self.selected_index);
 		if let Some(mut ix) = self.selected_index {
 			if ix.row > 0 {
 				ix.row -= 1;
@@ -144,17 +134,14 @@ impl EmojiListDelegate {
 						let last_row = (count - 1) / self.emojis_per_row;
 						let items_in_last_row = count - (last_row * self.emojis_per_row);
 						let col = ix.column.min(items_in_last_row - 1);
-						self.selected_index = Some(IndexPath {
-							section: prev_section_idx,
-							row: last_row,
-							column: col,
-						});
+						self.selected_index =
+							Some(IndexPath { section: prev_section_idx, row: last_row, column: col });
 					}
 				}
 			}
 		} else if !self.emoji_legions.is_empty() {
 			self.selected_index = Some(IndexPath { section: 0, row: 0, column: 0 });
 		}
-		println!("Moved Up to: {:?}", self.selected_index);
+		info!("Moved Up to: {:?}", self.selected_index);
 	}
 }
