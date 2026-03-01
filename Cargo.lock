@@ -1531,6 +1531,7 @@ dependencies = [
 [[package]]
 name = "emoji_search"
 version = "0.1.0"
+source = "git+https://github.com/philocalyst/emoji_search#19d0757ba80a6b8990b290aaec56501024f8aca1"
 dependencies = [
  "bitcode",
  "emoji",

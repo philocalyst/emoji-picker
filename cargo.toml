@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 emoji = { git = "https://github.com/philocalyst/emoji-rs" }
-emoji_search = { path = "../emoji_search" }
+emoji_search = { git = "https://github.com/philocalyst/emoji_search"}
 gpui = "0.2.2"
 unicode-segmentation = "1.12.0"
 cocoa = "0.26.0"
