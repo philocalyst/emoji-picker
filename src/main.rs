@@ -218,6 +218,7 @@ fn run_app() {
 					KeyBinding::new("escape", Cancel, None),
 					KeyBinding::new("N", RotateTones { direction: Backward }, None),
 					KeyBinding::new("n", RotateTones { direction: Forward }, None),
+					KeyBinding::new("enter", Cancel, None),
 
 					// Picker-scoped bindings
 					KeyBinding::new("up", picker::MoveUp, Some("List")),
