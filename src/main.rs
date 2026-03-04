@@ -5,9 +5,18 @@ use emoji_search;
 use enigo::{Enigo, Keyboard, Settings};
 #[cfg(target_os = "macos")]
 use global_hotkey::hotkey::Modifiers;
-use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey}};
-use gpui::{Action, AnyWindowHandle, App, AppContext, Application, Bounds, Entity, Hsla, KeyBinding, Pixels, Size, WindowBounds, WindowKind, WindowOptions, actions, point, px, size};
-use gpui_component::{PixelsExt, Root, ThemeColor, theme::{self, Theme, ThemeMode}};
+use global_hotkey::{
+	GlobalHotKeyEvent, GlobalHotKeyManager,
+	hotkey::{Code, HotKey},
+};
+use gpui::{
+	Action, AnyWindowHandle, App, AppContext, Application, Bounds, Entity, Hsla, KeyBinding, Pixels,
+	Size, WindowBounds, WindowKind, WindowOptions, actions, point, px, size,
+};
+use gpui_component::{
+	PixelsExt, Root, ThemeColor,
+	theme::{self, Theme, ThemeMode},
+};
 use mouse_position::mouse_position::Mouse;
 use nonempty::NonEmpty;
 use serde::Deserialize;
@@ -91,7 +100,9 @@ struct SelectedEmoji(Option<NonEmpty<Emoji>>);
 impl gpui::Global for SelectedEmoji {}
 
 impl Default for SelectedEmoji {
-	fn default() -> Self { Self(None) }
+	fn default() -> Self {
+		Self(None)
+	}
 }
 
 /// The tone we're currently on.
@@ -112,7 +123,9 @@ impl ToneIndex {
 }
 
 impl Default for ToneIndex {
-	fn default() -> Self { Self(0) }
+	fn default() -> Self {
+		Self(0)
+	}
 }
 
 #[derive(Clone, Copy)]
@@ -121,7 +134,9 @@ pub struct PopoverState {
 }
 
 impl Default for PopoverState {
-	fn default() -> Self { Self { open_emoji: None } }
+	fn default() -> Self {
+		Self { open_emoji: None }
+	}
 }
 
 impl gpui::Global for PopoverState {}
@@ -156,15 +171,15 @@ fn install_and_start_service() {
 
 	println!("Installing service...");
 	match manager.install(ServiceInstallCtx {
-		label:             label.clone(),
-		program:           exe_path,
-		args:              vec!["--service".into()],
-		contents:          None,
-		username:          None,
+		label: label.clone(),
+		program: exe_path,
+		args: vec!["--service".into()],
+		contents: None,
+		username: None,
 		working_directory: None,
-		environment:       None,
-		autostart:         true,
-		restart_policy:    RestartPolicy::Always { delay_secs: Some(5) },
+		environment: None,
+		autostart: true,
+		restart_policy: RestartPolicy::Always { delay_secs: Some(5) },
 	}) {
 		Ok(_) => println!("Service installed successfully."),
 		Err(e) => eprintln!("Note: Service install failed (it might already exist): {}", e),
@@ -216,12 +231,12 @@ fn run_app() {
 					KeyBinding::new("super-q", Quit, None),
 					KeyBinding::new("super-w", Quit, None),
 					KeyBinding::new("escape", Cancel, None),
-					KeyBinding::new("N", RotateTones { direction: Backward }, None),
-					KeyBinding::new("n", RotateTones { direction: Forward }, None),
 					KeyBinding::new("enter", Cancel, None),
 
 					// Picker-scoped bindings
 					KeyBinding::new("up", picker::MoveUp, Some("List")),
+					KeyBinding::new("N", RotateTones { direction: Backward }, Some("List")),
+					KeyBinding::new("n", RotateTones { direction: Forward }, Some("List")),
 					KeyBinding::new("down", picker::MoveDown, Some("List")),
 					KeyBinding::new("left", picker::MoveLeft, Some("List")),
 					KeyBinding::new("right", picker::MoveRight, Some("List")),
