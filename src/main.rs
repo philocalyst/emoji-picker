@@ -5,18 +5,9 @@ use emoji_search;
 use enigo::{Enigo, Keyboard, Settings};
 #[cfg(target_os = "macos")]
 use global_hotkey::hotkey::Modifiers;
-use global_hotkey::{
-	GlobalHotKeyEvent, GlobalHotKeyManager,
-	hotkey::{Code, HotKey},
-};
-use gpui::{
-	Action, AnyWindowHandle, App, AppContext, Application, Bounds, Entity, Hsla, KeyBinding, Pixels,
-	Size, WindowBounds, WindowKind, WindowOptions, actions, point, px, size,
-};
-use gpui_component::{
-	PixelsExt, Root, ThemeColor,
-	theme::{self, Theme, ThemeMode},
-};
+use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey}};
+use gpui::{Action, AnyWindowHandle, App, AppContext, Application, Bounds, Entity, Hsla, KeyBinding, Pixels, Size, WindowBounds, WindowKind, WindowOptions, actions, point, px, size};
+use gpui_component::{PixelsExt, Root, ThemeColor, theme::{self, Theme, ThemeMode}};
 use mouse_position::mouse_position::Mouse;
 use nonempty::NonEmpty;
 use serde::Deserialize;
@@ -100,9 +91,7 @@ struct SelectedEmoji(Option<NonEmpty<Emoji>>);
 impl gpui::Global for SelectedEmoji {}
 
 impl Default for SelectedEmoji {
-	fn default() -> Self {
-		Self(None)
-	}
+	fn default() -> Self { Self(None) }
 }
 
 /// The tone we're currently on.
@@ -123,9 +112,7 @@ impl ToneIndex {
 }
 
 impl Default for ToneIndex {
-	fn default() -> Self {
-		Self(0)
-	}
+	fn default() -> Self { Self(0) }
 }
 
 #[derive(Clone, Copy)]
@@ -134,9 +121,7 @@ pub struct PopoverState {
 }
 
 impl Default for PopoverState {
-	fn default() -> Self {
-		Self { open_emoji: None }
-	}
+	fn default() -> Self { Self { open_emoji: None } }
 }
 
 impl gpui::Global for PopoverState {}
@@ -171,15 +156,15 @@ fn install_and_start_service() {
 
 	println!("Installing service...");
 	match manager.install(ServiceInstallCtx {
-		label: label.clone(),
-		program: exe_path,
-		args: vec!["--service".into()],
-		contents: None,
-		username: None,
+		label:             label.clone(),
+		program:           exe_path,
+		args:              vec!["--service".into()],
+		contents:          None,
+		username:          None,
 		working_directory: None,
-		environment: None,
-		autostart: true,
-		restart_policy: RestartPolicy::Always { delay_secs: Some(5) },
+		environment:       None,
+		autostart:         true,
+		restart_policy:    RestartPolicy::Always { delay_secs: Some(5) },
 	}) {
 		Ok(_) => println!("Service installed successfully."),
 		Err(e) => eprintln!("Note: Service install failed (it might already exist): {}", e),
@@ -221,6 +206,16 @@ fn run_app() {
 		// Set to yellow -- 0
 		cx.set_global::<ToneIndex>(ToneIndex(0));
 		cx.set_global::<PopoverState>(PopoverState::default());
+
+		// Important that it doesn't show within the dock,
+		// TODO: Help this get merged into GPUI-CE so this isn't needed (https://github.com/zed-industries/zed/pull/43822)
+		#[cfg(target_os = "macos")]
+		unsafe {
+			use objc2::{MainThreadMarker, msg_send};
+			use objc2_app_kit::{NSApplication, NSApplicationActivationPolicy};
+			let app = NSApplication::sharedApplication(MainThreadMarker::new().unwrap());
+			let _: () = msg_send![&*app, setActivationPolicy: NSApplicationActivationPolicy::Accessory];
+		}
 
 		theme::init(cx);
 
