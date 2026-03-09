@@ -24,6 +24,8 @@ tracing = "0.1.44"
 tracing-subscriber = "0.3.22"
 tracing-appender = "0.2.4"
 tracing-oslog = "0.3.0"
+objc2-app-kit = "0.3.2"
+objc2 = "0.6.4"
 
 [package.metadata.packager]
 before-packaging-command = "cargo build --release"
@@ -50,6 +52,7 @@ copyright = "Copyright © 2026 philocalyst. All rights reserved."
 category = "Utility"
 
 short_description = "A fast, keyboard-driven emoji picker."
+osx_info_plist_exts = [ "./hide-from-dock.plist" ]
 
 long_description = """
 Moji is a lightweight emoji picker that lives in your menu bar.
@@ -72,4 +75,3 @@ osx_minimum_system_version = "13.0"
 # URL schemes this app registers as a handle.
 osx_url_schemes = ["com.philocalyst.moji"]
 
-osx_info_plist_exts = ["macos/Info.plist.extra"]
