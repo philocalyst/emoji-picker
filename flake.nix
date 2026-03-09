@@ -196,6 +196,7 @@
               pkgs.jsonfmt # JSON formatting
               pkgs.dotacat # Colorful terminal output
               pkgs.goreleaser
+              pkgs.cargo-bundle
               pkgs.cuelsp
               pkgs.b3sum
             ]
