@@ -3,7 +3,7 @@
 version = 4
 
 [[package]]
-name = "BOB"
+name = "B-O-B"
 version = "0.1.0"
 dependencies = [
  "cocoa 0.26.0",
