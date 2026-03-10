@@ -230,14 +230,15 @@ fn run_app() {
 
 					// Picker-scoped bindings
 					KeyBinding::new("up", picker::MoveUp, Some("List")),
-					KeyBinding::new("N", RotateTones { direction: Backward }, Some("List")),
-					KeyBinding::new("n", RotateTones { direction: Forward }, Some("List")),
 					KeyBinding::new("down", picker::MoveDown, Some("List")),
 					KeyBinding::new("left", picker::MoveLeft, Some("List")),
 					KeyBinding::new("right", picker::MoveRight, Some("List")),
-					KeyBinding::new("space", picker::SelectCurrent, Some("List")),
-					KeyBinding::new("shift-space", picker::OpenSecondary, Some("List")),
+					KeyBinding::new(",", picker::OpenSecondary, Some("List")),
+					KeyBinding::new("shift-space", picker::SelectCurrent, Some("List")),
 
+					KeyBinding::new("space", picker::SelectCurrent, Some("ListBody")),
+					KeyBinding::new("N", RotateTones { direction: Backward }, Some("ListBody")),
+					KeyBinding::new("n", RotateTones { direction: Forward }, Some("ListBody")),
 					KeyBinding::new("k", picker::MoveUp, Some("ListBody")),
 					KeyBinding::new("j", picker::MoveDown, Some("ListBody")),
 					KeyBinding::new("h", picker::MoveLeft, Some("ListBody")),
