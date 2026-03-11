@@ -29,11 +29,10 @@ objc = "0.2.7"
 core-text = "=21.0.0"
 cocoa = "0.26.0"
 
-
 [package.metadata.packager]
 before-packaging-command = "cargo build --release"
-product-name = "Emoji"
-identifier = "com.philocalyst.emoji"
+product-name = "BOB"
+identifier = "com.philocalyst.BOB"
 resources = ["Cargo.toml", "src"]
 
 [package.metadata.packager.macos]
