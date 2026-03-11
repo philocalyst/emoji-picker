@@ -3,9 +3,7 @@ use std::{env, sync::LazyLock, thread, time::Duration};
 use emoji::Emoji;
 use emoji_search;
 use enigo::{Enigo, Keyboard, Settings};
-#[cfg(target_os = "macos")]
-use global_hotkey::hotkey::Modifiers;
-use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey}};
+use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey, Modifiers}};
 use gpui::{Action, AnyWindowHandle, App, AppContext, Application, Bounds, Entity, Hsla, KeyBinding, Pixels, Size, WindowBounds, WindowKind, WindowOptions, actions, point, px, size};
 use gpui_component::{PixelsExt, Root, ThemeColor, theme::{self, Theme, ThemeMode}};
 use mouse_position::mouse_position::Mouse;
