@@ -8,13 +8,10 @@ emoji = { git = "https://github.com/philocalyst/emoji-rs" }
 emoji_search = { git = "https://github.com/philocalyst/emoji_search"}
 gpui = "0.2.2"
 unicode-segmentation = "1.12.0"
-cocoa = "0.26.0"
 imekit = "0.1.0"
 global-hotkey = "0.7.0"
-core-text = "=21.0.0"
 daemonize = "0.5.0"
 service-manager = "0.10.0"
-objc = "0.2.7"
 enigo = "0.6.1"
 mouse_position = "0.1.4"
 nonempty = "0.12.0"
@@ -24,8 +21,14 @@ tracing = "0.1.44"
 tracing-subscriber = "0.3.22"
 tracing-appender = "0.2.4"
 tracing-oslog = "0.3.0"
+
+[target.'cfg(target_os = "macos")'.dependencies]
 objc2-app-kit = "0.3.2"
 objc2 = "0.6.4"
+objc = "0.2.7"
+core-text = "=21.0.0"
+cocoa = "0.26.0"
+
 
 [package.metadata.packager]
 before-packaging-command = "cargo build --release"
