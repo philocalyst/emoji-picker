@@ -2,3 +2,6 @@
 title = "B.O.B"
 authors = ["Myles Wirth"]
 language = "en"
+
+[build]
+build-dir = "dist"

@@ -1,17 +1,16 @@
 # Summary
 
-[Introduction](/README.md)
+[Introduction](introduction.md)
 
 # Setup
 
-- [Wayland](/book/src/setup/wayland.md)
-- [X11](/book/src/setup/x11.md)
-- [MacOS](/book/src/setup/macos.md)
+- [Wayland](setup/wayland.md)
+- [X11](setup/x11.md)
+- [MacOS](setup/macos.md)
 
 # Usage
 
-- [Switching Default Gender](/book/src/usage/gender-switching.md)
-- [Switching Default Skin Tone](/book/src/usage/skin-tone-switching.md)
-- [Selecting Emojis](/book/src/usage/selection.md)
-- [Jumping to a Relevant Section](/book/src/usage/section-jumping.md)
-
+- [Switching Default Gender](usage/gender-switching.md)
+- [Switching Default Skin Tone](usage/skin-tone-switching.md)
+- [Selecting Emojis](usage/selection.md)
+- [Jumping to a Relevant Section](usage/section-jumping.md)
