@@ -131,7 +131,7 @@ impl Picker {
 			.and_then(|ix| self.get_emoji_at_path(ix, cx));
 
 		if let Some(emoji) = selected_emoji {
-			insert_emoji(emoji.glyph);
+			insert_emoji(emoji.glyph, cx);
 			cx.shutdown();
 		}
 	}

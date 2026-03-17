@@ -2,6 +2,7 @@ use std::{env, sync::LazyLock, thread, time::Duration};
 
 use emoji::Emoji;
 use emoji_search;
+#[cfg(not(target_os = "linux"))]
 use enigo::{Enigo, Keyboard, Settings};
 use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey, Modifiers}};
 use gpui::{Action, AnyWindowHandle, App, AppContext, Application, Bounds, Entity, Hsla, KeyBinding, Pixels, Size, WindowBounds, WindowKind, WindowOptions, actions, point, px, size};
@@ -10,6 +11,8 @@ use mouse_position::mouse_position::Mouse;
 use nonempty::NonEmpty;
 use serde::Deserialize;
 use service_manager::*;
+#[cfg(target_os = "linux")]
+use tracing::{error, warn};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 // TODO: This needs finally implement the hold for options logic
@@ -111,6 +114,90 @@ impl ToneIndex {
 
 impl Default for ToneIndex {
 	fn default() -> Self { Self(0) }
+}
+
+// -- Wayland / Hyprland support ---------------------------------------------------
+
+#[cfg(target_os = "linux")]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum LinuxSession {
+	WaylandHyprland,
+	WaylandOther,
+	X11,
+	Unknown,
+}
+
+#[cfg(target_os = "linux")]
+fn detect_linux_session() -> LinuxSession {
+	let wayland = std::env::var_os("WAYLAND_DISPLAY").is_some()
+		|| std::env::var("XDG_SESSION_TYPE").ok().as_deref() == Some("wayland");
+	if wayland {
+		if std::env::var_os("HYPRLAND_INSTANCE_SIGNATURE").is_some() {
+			LinuxSession::WaylandHyprland
+		} else {
+			LinuxSession::WaylandOther
+		}
+	} else if std::env::var_os("DISPLAY").is_some() {
+		LinuxSession::X11
+	} else {
+		LinuxSession::Unknown
+	}
+}
+
+/// Stores the window that was focused before the picker opened.
+/// Captured via `hyprctl activewindow -j` on Hyprland/Wayland.
+#[derive(Clone, Debug, Default)]
+pub(crate) struct PendingInsertTarget {
+	/// Hyprland window address (e.g. "0x5678abcd")
+	pub hyprland_address: Option<String>,
+	/// Window class for terminal-paste detection
+	pub class: Option<String>,
+}
+
+impl gpui::Global for PendingInsertTarget {}
+
+/// Terminal window classes that need Ctrl+Shift+V instead of Ctrl+V.
+#[cfg(target_os = "linux")]
+const SHIFT_PASTE_CLASSES: &[&str] = &[
+	"kitty",
+	"alacritty",
+	"foot",
+	"wezterm",
+	"terminator",
+	"tilix",
+	"gnome-terminal",
+	"konsole",
+	"xterm",
+	"urxvt",
+	"st",
+	"rio",
+	"ghostty",
+];
+
+#[cfg(target_os = "linux")]
+fn capture_hyprland_active_window() -> PendingInsertTarget {
+	use std::process::Command;
+
+	let output = match Command::new("hyprctl").args(["activewindow", "-j"]).output() {
+		Ok(o) => o,
+		Err(e) => {
+			warn!("Failed to run hyprctl activewindow: {e}");
+			return PendingInsertTarget::default();
+		}
+	};
+
+	let json: serde_json::Value = match serde_json::from_slice(&output.stdout) {
+		Ok(v) => v,
+		Err(e) => {
+			warn!("Failed to parse hyprctl activewindow JSON: {e}");
+			return PendingInsertTarget::default();
+		}
+	};
+
+	PendingInsertTarget {
+		hyprland_address: json["address"].as_str().map(String::from),
+		class:            json["class"].as_str().map(String::from),
+	}
 }
 
 #[derive(Clone, Copy)]
@@ -299,6 +386,15 @@ fn run_app() {
 										return;
 									}
 								}
+
+								// Capture the currently-focused window BEFORE we
+								// open the picker (Wayland/Hyprland).
+								#[cfg(target_os = "linux")]
+								if detect_linux_session() == LinuxSession::WaylandHyprland {
+									let target = capture_hyprland_active_window();
+									cx.set_global::<PendingInsertTarget>(target);
+								}
+
 								initialize(cx);
 							})
 							.expect("Context should be sturdy");
@@ -390,12 +486,146 @@ fn initialize(cx: &mut App) {
 	.unwrap();
 }
 
-pub(crate) fn insert_emoji(emoji: &str) {
+pub(crate) fn insert_emoji(emoji: &str, cx: &App) {
 	let emoji_owned = emoji.to_string();
+
+	#[cfg(target_os = "linux")]
+	let target = cx.try_global::<PendingInsertTarget>().cloned();
+
+	// Suppress unused-variable warning on non-Linux
+	#[cfg(not(target_os = "linux"))]
+	let _ = cx;
+
 	thread::spawn(move || {
-		// This is TOTALLY a race condition but it's also the BEST solution I have
-		thread::sleep(Duration::from_millis(75));
-		let mut enigo = Enigo::new(&Settings::default()).unwrap();
-		enigo.text(&emoji_owned).unwrap();
+		#[cfg(target_os = "macos")]
+		{
+			thread::sleep(Duration::from_millis(75));
+			let mut enigo = Enigo::new(&Settings::default()).unwrap();
+			enigo.text(&emoji_owned).unwrap();
+			return;
+		}
+
+		#[cfg(target_os = "linux")]
+		{
+			match detect_linux_session() {
+				LinuxSession::X11 => {
+					thread::sleep(Duration::from_millis(75));
+					let mut enigo =
+						enigo::Enigo::new(&enigo::Settings::default()).unwrap();
+					enigo::Keyboard::text(&mut enigo, &emoji_owned).unwrap();
+				}
+				LinuxSession::WaylandHyprland => {
+					insert_emoji_wayland_hyprland(&emoji_owned, target.as_ref());
+				}
+				LinuxSession::WaylandOther => {
+					// Best-effort: just copy to clipboard, user can paste manually
+					if let Err(e) = wl_copy(&emoji_owned) {
+						error!("Failed to copy emoji to clipboard: {e}");
+					} else {
+						warn!(
+							"Non-Hyprland Wayland compositor detected. \
+							 Emoji copied to clipboard — paste with Ctrl+V."
+						);
+					}
+				}
+				LinuxSession::Unknown => {
+					error!("Could not detect display session; emoji not inserted.");
+				}
+			}
+		}
 	});
+}
+
+#[cfg(target_os = "linux")]
+fn wl_copy(text: &str) -> std::io::Result<()> {
+	use std::io::Write;
+	use std::process::{Command, Stdio};
+
+	let mut child = Command::new("wl-copy")
+		.arg("--type")
+		.arg("text/plain")
+		.stdin(Stdio::piped())
+		.spawn()?;
+
+	if let Some(mut stdin) = child.stdin.take() {
+		stdin.write_all(text.as_bytes())?;
+	}
+	child.wait()?;
+	Ok(())
+}
+
+#[cfg(target_os = "linux")]
+fn wl_paste() -> std::io::Result<Option<String>> {
+	use std::process::Command;
+
+	let output = Command::new("wl-paste").arg("--no-newline").output()?;
+
+	let stdout = String::from_utf8_lossy(&output.stdout);
+	if stdout.contains("Nothing is copied") || stdout.trim().is_empty() {
+		return Ok(None);
+	}
+	Ok(Some(stdout.into_owned()))
+}
+
+#[cfg(target_os = "linux")]
+fn insert_emoji_wayland_hyprland(emoji: &str, target: Option<&PendingInsertTarget>) {
+	use std::process::Command;
+
+	let Some(target) = target else {
+		warn!("No Hyprland insert target captured; falling back to clipboard copy");
+		let _ = wl_copy(emoji);
+		return;
+	};
+
+	let Some(address) = target.hyprland_address.as_deref() else {
+		warn!("No Hyprland window address; falling back to clipboard copy");
+		let _ = wl_copy(emoji);
+		return;
+	};
+
+	// 1. Save original clipboard contents
+	let original_clipboard = wl_paste().ok().flatten();
+
+	// 2. Copy emoji to clipboard
+	if let Err(e) = wl_copy(emoji) {
+		error!("wl-copy failed: {e}");
+		return;
+	}
+
+	// Small delay to let wl-copy settle
+	thread::sleep(Duration::from_millis(25));
+
+	// 3. Send paste shortcut to the original window via hyprctl
+	let needs_shift = target
+		.class
+		.as_deref()
+		.map(|c| {
+			let lower = c.to_lowercase();
+			SHIFT_PASTE_CLASSES.iter().any(|t| lower.contains(t))
+		})
+		.unwrap_or(false);
+
+	let shortcut = if needs_shift {
+		format!("CONTROL SHIFT, V, address:{address}")
+	} else {
+		format!("CONTROL, V, address:{address}")
+	};
+
+	let result = Command::new("hyprctl")
+		.args(["dispatch", "sendshortcut", &shortcut])
+		.output();
+
+	if let Err(e) = result {
+		error!("hyprctl dispatch sendshortcut failed: {e}");
+	}
+
+	// 4. Wait for paste to complete
+	thread::sleep(Duration::from_millis(100));
+
+	// 5. Restore original clipboard
+	if let Some(original) = original_clipboard {
+		if let Err(e) = wl_copy(&original) {
+			warn!("Failed to restore clipboard: {e}");
+		}
+	}
 }

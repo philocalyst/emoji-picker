@@ -22,6 +22,7 @@ dependencies = [
  "objc2",
  "objc2-app-kit",
  "serde",
+ "serde_json",
  "service-manager",
  "tracing",
  "tracing-appender",

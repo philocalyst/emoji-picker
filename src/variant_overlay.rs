@@ -19,8 +19,7 @@ pub(crate) fn element(emoji: &Emoji, font_size: Pixels) -> impl IntoElement {
 				.id("hi")
 				.hover(|s| s.bg(hsla(0., 0., 0., 0.1)))
 				.on_click(move |_, _, cx: &mut App| {
-					insert_emoji(variant.glyph);
-					// cx.window().shutdown();
+					insert_emoji(variant.glyph, cx);
 					cx.shutdown();
 				})
 		}))

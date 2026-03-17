@@ -145,7 +145,7 @@ impl RenderOnce for EmojiRow {
 								if state.open_emoji == Some(emoji) {
 									return;
 								}
-								insert_emoji(pure_emoji);
+								insert_emoji(pure_emoji, cx);
 								cx.shutdown();
 							})
 							.into_any_element(),
@@ -169,8 +169,7 @@ impl RenderOnce for EmojiRow {
 				} else {
 					base_element
 						.on_click(move |_, _, cx: &mut App| {
-							insert_emoji(pure_emoji);
-							// cx.window().shutdown();
+							insert_emoji(pure_emoji, cx);
 							cx.shutdown();
 						})
 						.into_any_element()
