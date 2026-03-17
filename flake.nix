@@ -184,6 +184,7 @@
               pkgs.rust-analyzer # Rust LSP server
               pkgs.flock # For managing shell concurrency
               pkgs.nixfmt # Nix formatter
+              pkgs.mdbook
               pkgs.tombi # TOML formatter/linter
               pkgs.typos # Source code spell checker
               pkgs.hongdown # Markdown formatting
