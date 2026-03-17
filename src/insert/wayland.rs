@@ -1,37 +1,37 @@
 //! Wayland clipboard management and Hyprland-specific emoji paste insertion.
-
+#[cfg(target_os = "linux")]
+use crate::integration::linux::{PendingInsertTarget, SHIFT_PASTE_CLASSES};
 use std::{thread, time::Duration};
 use tracing::{error, warn};
 
 #[cfg(target_os = "linux")]
-use crate::integration::linux::{PendingInsertTarget, SHIFT_PASTE_CLASSES};
-
-#[cfg(target_os = "linux")]
 pub(crate) fn wl_copy(text: &str) -> std::io::Result<()> {
-	use std::io::Write;
-	use std::process::{Command, Stdio};
-
-	let mut child =
-		Command::new("wl-copy").arg("--type").arg("text/plain").stdin(Stdio::piped()).spawn()?;
-
-	if let Some(mut stdin) = child.stdin.take() {
-		stdin.write_all(text.as_bytes())?;
-	}
-	child.wait()?;
-	Ok(())
+	use wl_clipboard_rs::copy::{MimeType, Options, Source};
+	let opts = Options::new();
+	opts
+		.copy(
+			Source::Bytes(text.as_bytes().to_vec().into()),
+			MimeType::Specific("text/plain".to_string()),
+		)
+		.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
 }
 
 #[cfg(target_os = "linux")]
 fn wl_paste() -> std::io::Result<Option<String>> {
-	use std::process::Command;
+	use std::io::Read;
+	use wl_clipboard_rs::paste::{ClipboardType, Error, MimeType, Seat, get_contents};
 
-	let output = Command::new("wl-paste").arg("--no-newline").output()?;
-
-	let stdout = String::from_utf8_lossy(&output.stdout);
-	if stdout.contains("Nothing is copied") || stdout.trim().is_empty() {
-		return Ok(None);
+	let result = get_contents(ClipboardType::Regular, Seat::Unspecified, MimeType::Text);
+	match result {
+		Ok((mut pipe, _)) => {
+			let mut contents = vec![];
+			pipe.read_to_end(&mut contents)?;
+			let text = String::from_utf8_lossy(&contents).into_owned();
+			if text.trim().is_empty() { Ok(None) } else { Ok(Some(text)) }
+		}
+		Err(Error::NoSeats) | Err(Error::ClipboardEmpty) | Err(Error::NoMimeType) => Ok(None),
+		Err(e) => Err(std::io::Error::new(std::io::ErrorKind::Other, e)),
 	}
-	Ok(Some(stdout.into_owned()))
 }
 
 #[cfg(target_os = "linux")]
