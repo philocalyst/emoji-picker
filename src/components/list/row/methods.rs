@@ -11,21 +11,15 @@ impl Selectable for EmojiWrapper {
 		self
 	}
 
-	fn is_selected(&self) -> bool {
-		self.selected
-	}
+	fn is_selected(&self) -> bool { self.selected }
 }
 
 impl IntoElement for EmojiWrapper {
 	type Element = gpui::AnyElement;
 
-	fn into_element(self) -> Self::Element {
-		self.content
-	}
+	fn into_element(self) -> Self::Element { self.content }
 }
 
 impl RenderOnce for EmojiWrapper {
-	fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-		self.content
-	}
+	fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement { self.content }
 }

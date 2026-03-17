@@ -1,6 +1,6 @@
 //! Action definitions and keybind registration for the picker.
 
-use gpui::{actions, Action, App, KeyBinding};
+use gpui::{Action, App, KeyBinding, actions};
 use serde::Deserialize;
 
 #[derive(Action, Clone, PartialEq, Eq, Deserialize)]
@@ -41,14 +41,12 @@ pub(crate) fn bind_all(cx: &mut App) {
 		KeyBinding::new("super-w", Quit, None),
 		KeyBinding::new("escape", Cancel, None),
 		KeyBinding::new("enter", Cancel, None),
-
 		KeyBinding::new("up", MoveUp, Some("List")),
 		KeyBinding::new("down", MoveDown, Some("List")),
 		KeyBinding::new("left", MoveLeft, Some("List")),
 		KeyBinding::new("right", MoveRight, Some("List")),
 		KeyBinding::new(",", OpenSecondary, Some("List")),
 		KeyBinding::new("shift-space", SelectCurrent, Some("List")),
-
 		KeyBinding::new("space", SelectCurrent, Some("ListBody")),
 		KeyBinding::new("N", RotateTones { direction: Backward }, Some("ListBody")),
 		KeyBinding::new("n", RotateTones { direction: Forward }, Some("ListBody")),
@@ -60,11 +58,7 @@ pub(crate) fn bind_all(cx: &mut App) {
 	];
 
 	for n in 0..=9 {
-		bindings.push(KeyBinding::new(
-			&format!("super-{n}"),
-			JumpToSection { number: n },
-			None,
-		));
+		bindings.push(KeyBinding::new(&format!("super-{n}"), JumpToSection { number: n }, None));
 	}
 
 	cx.bind_keys(bindings);

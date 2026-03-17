@@ -1,10 +1,11 @@
 //! Wayland clipboard management and Hyprland-specific emoji paste insertion.
-#[cfg(target_os = "linux")]
-use crate::integration::linux::{PendingInsertTarget, SHIFT_PASTE_CLASSES};
 use std::{thread, time::Duration};
+
+use hyprland::dispatch::{Dispatch, DispatchType};
 use tracing::{error, warn};
 
-#[cfg(target_os = "linux")]
+use crate::integration::linux::{PendingInsertTarget, SHIFT_PASTE_CLASSES};
+
 pub(crate) fn wl_copy(text: &str) -> std::io::Result<()> {
 	use wl_clipboard_rs::copy::{MimeType, Options, Source};
 	let opts = Options::new();
@@ -16,9 +17,9 @@ pub(crate) fn wl_copy(text: &str) -> std::io::Result<()> {
 		.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
 }
 
-#[cfg(target_os = "linux")]
 fn wl_paste() -> std::io::Result<Option<String>> {
 	use std::io::Read;
+
 	use wl_clipboard_rs::paste::{ClipboardType, Error, MimeType, Seat, get_contents};
 
 	let result = get_contents(ClipboardType::Regular, Seat::Unspecified, MimeType::Text);
@@ -34,7 +35,6 @@ fn wl_paste() -> std::io::Result<Option<String>> {
 	}
 }
 
-#[cfg(target_os = "linux")]
 pub(crate) fn insert_hyprland(emoji: &str, target: Option<&PendingInsertTarget>) {
 	use std::process::Command;
 
@@ -57,7 +57,9 @@ pub(crate) fn insert_hyprland(emoji: &str, target: Option<&PendingInsertTarget>)
 		return;
 	}
 
-	thread::sleep(Duration::from_millis(25));
+	const COPY_DELAY: Duration = Duration::from_millis(25);
+
+	thread::sleep(COPY_DELAY);
 
 	let needs_shift = target
 		.class
@@ -68,19 +70,17 @@ pub(crate) fn insert_hyprland(emoji: &str, target: Option<&PendingInsertTarget>)
 		})
 		.unwrap_or(false);
 
-	let shortcut = if needs_shift {
-		format!("CONTROL SHIFT, V, address:{address}")
-	} else {
-		format!("CONTROL, V, address:{address}")
-	};
+	let (mods, key) = if needs_shift { ("CONTROL SHIFT", "V") } else { ("CONTROL", "V") };
 
-	let result = Command::new("hyprctl").args(["dispatch", "sendshortcut", &shortcut]).output();
+	let args = format!("{mods} {key} address:{address}");
 
-	if let Err(e) = result {
-		error!("hyprctl dispatch sendshortcut failed: {e}");
+	if let Err(e) = Dispatch::call(DispatchType::Custom("sendshortcut", &args)) {
+		error!("hyprland dispatch sendshortcut failed: {e}");
 	}
 
-	thread::sleep(Duration::from_millis(100));
+	const PASTE_DELAY: Duration = Duration::from_millis(50);
+
+	thread::sleep(PASTE_DELAY);
 
 	if let Some(original) = original_clipboard {
 		if let Err(e) = wl_copy(&original) {

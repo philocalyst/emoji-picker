@@ -2,9 +2,9 @@
 
 use std::sync::LazyLock;
 
-pub(crate) mod types;
 pub(crate) mod methods;
 pub(crate) mod row;
+pub(crate) mod types;
 
 pub(crate) static EMOJI_DATA: LazyLock<emoji_search::types::EmojiData> =
 	LazyLock::new(|| emoji_search::types::load_emoji_data().expect("failed to load emoji data"));

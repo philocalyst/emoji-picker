@@ -1,12 +1,13 @@
-//! List delegate construction, search, grid navigation, and ListDelegate trait implementation.
+//! List delegate construction, search, grid navigation, and ListDelegate trait
+//! implementation.
 
 use emoji::{Emoji, lookup_by_glyph::ALL_EMOJI};
 use gpui::{App, Context, FocusHandle, IntoElement, ParentElement, Pixels, Styled, Task, Window, div};
 use gpui_component::{IndexPath, StyledExt, list::{ListDelegate, ListState}};
 use tracing::debug;
 
-use crate::components::list::row::types::EmojiRow;
 use super::types::{EmojiListDelegate, GroupedEmojis};
+use crate::components::list::row::types::EmojiRow;
 
 fn grouped_emojis() -> Vec<GroupedEmojis> {
 	emoji::Group::iter().fold(Vec::new(), |mut all, current_group| {
@@ -159,17 +160,11 @@ impl EmojiListDelegate {
 impl ListDelegate for EmojiListDelegate {
 	type Item = EmojiRow;
 
-	fn sections_count(&self, _: &App) -> usize {
-		self.emoji_legions.len()
-	}
+	fn sections_count(&self, _: &App) -> usize { self.emoji_legions.len() }
 
 	fn items_count(&self, section: usize, _: &App) -> usize {
-		let emoji_count = self
-			.emoji_legions
-			.get(section)
-			.expect("section index out of bounds")
-			.emojis
-			.len();
+		let emoji_count =
+			self.emoji_legions.get(section).expect("section index out of bounds").emojis.len();
 		(emoji_count + self.emojis_per_row - 1) / self.emojis_per_row
 	}
 
@@ -222,12 +217,12 @@ impl ListDelegate for EmojiListDelegate {
 			if is_selected_row { self.selected_index.map(|sel| sel.column) } else { None };
 
 		Some(EmojiRow {
-			emojis: row_emojis,
-			selected: is_selected_row,
+			emojis:             row_emojis,
+			selected:           is_selected_row,
 			contains_selection: is_selected_row,
-			selected_column: selected_col,
-			font_size: self.emoji_size,
-			body_focus_handle: self.body_focus_handle.clone(),
+			selected_column:    selected_col,
+			font_size:          self.emoji_size,
+			body_focus_handle:  self.body_focus_handle.clone(),
 		})
 	}
 

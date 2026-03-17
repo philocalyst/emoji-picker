@@ -1,4 +1,5 @@
-//! Linux session detection, Hyprland support, and terminal paste class handling.
+//! Linux session detection, Hyprland support, and terminal paste class
+//! handling.
 
 use tracing::warn;
 
@@ -31,7 +32,7 @@ pub(crate) fn detect_linux_session() -> LinuxSession {
 #[derive(Clone, Debug, Default)]
 pub(crate) struct PendingInsertTarget {
 	pub hyprland_address: Option<String>,
-	pub class: Option<String>,
+	pub class:            Option<String>,
 }
 
 impl gpui::Global for PendingInsertTarget {}
@@ -74,6 +75,6 @@ pub(crate) fn capture_hyprland_active_window() -> PendingInsertTarget {
 
 	PendingInsertTarget {
 		hyprland_address: json["address"].as_str().map(String::from),
-		class: json["class"].as_str().map(String::from),
+		class:            json["class"].as_str().map(String::from),
 	}
 }

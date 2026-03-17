@@ -6,11 +6,7 @@ use gpui_component::{IndexPath, list::{ListEvent, ListState}};
 use nonempty::NonEmpty;
 use tracing::debug;
 
-use crate::components::list::types::EmojiListDelegate;
-use crate::components::types::{Picker, PopoverState, SelectedEmoji};
-use crate::emoji_sizing::calculate_emoji_sizing;
-use crate::insert::insert_emoji;
-use crate::keys::Quit;
+use crate::{components::{list::types::EmojiListDelegate, types::{Picker, PopoverState, SelectedEmoji}}, emoji_sizing::calculate_emoji_sizing, insert::insert_emoji, keys::Quit};
 
 impl Picker {
 	pub fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
@@ -27,23 +23,21 @@ impl Picker {
 			EmojiListDelegate::new(sizing.emojis_per_row, sizing.emoji_size, body_focus_handle.clone());
 		let list_state = cx.new(|cx| ListState::new(delegate, window, cx).searchable(true));
 
-		let _subscription = cx.subscribe(&list_state, |picker, _, ev: &ListEvent, cx| {
-			match ev {
-				ListEvent::Select(ix) => {
-					if let Some(emoji) = picker.get_emoji_at_path(*ix, cx) {
-						debug!(emoji = emoji.name, "emoji selected");
-						picker.selected_emoji = Some(emoji);
-						cx.set_global(SelectedEmoji(Some(NonEmpty::new(emoji.clone()))));
-					}
+		let _subscription = cx.subscribe(&list_state, |picker, _, ev: &ListEvent, cx| match ev {
+			ListEvent::Select(ix) => {
+				if let Some(emoji) = picker.get_emoji_at_path(*ix, cx) {
+					debug!(emoji = emoji.name, "emoji selected");
+					picker.selected_emoji = Some(emoji);
+					cx.set_global(SelectedEmoji(Some(NonEmpty::new(emoji.clone()))));
 				}
-				ListEvent::Confirm(ix) => {
-					if let Some(emoji) = picker.get_emoji_at_path(*ix, cx) {
-						picker.selected_emoji = Some(emoji);
-					}
+			}
+			ListEvent::Confirm(ix) => {
+				if let Some(emoji) = picker.get_emoji_at_path(*ix, cx) {
+					picker.selected_emoji = Some(emoji);
 				}
-				ListEvent::Cancel => {
-					debug!("emoji selection cancelled");
-				}
+			}
+			ListEvent::Cancel => {
+				debug!("emoji selection cancelled");
 			}
 		});
 

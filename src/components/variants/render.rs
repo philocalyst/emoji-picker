@@ -1,28 +1,28 @@
 //! Renders the skin tone variant overlay row.
 
 use emoji::Emoji;
-use gpui::{App, InteractiveElement, IntoElement, ParentElement, Pixels, StatefulInteractiveElement, Styled, div, hsla};
+use gpui::{App, InteractiveElement, IntoElement, ParentElement, Pixels, Render, RenderOnce, StatefulInteractiveElement, Styled, div, hsla};
 use gpui_component::{gray_300, h_flex};
 
-use crate::insert::insert_emoji;
+use crate::{components::variants::types::Variants, insert::insert_emoji};
 
-pub(crate) fn element(emoji: &Emoji, font_size: Pixels) -> impl IntoElement {
-	let variants = emoji.skin_tones.unwrap();
-
-	h_flex()
-		.gap_2()
-		.bg(gray_300())
-		.children(variants.into_iter().map(|variant| {
-			div()
-				.child(variant.glyph)
-				.text_size(font_size)
-				.cursor_pointer()
-				.id("hi")
-				.hover(|s| s.bg(hsla(0., 0., 0., 0.1)))
-				.on_click(move |_, _, cx: &mut App| {
-					insert_emoji(variant.glyph, cx);
-					cx.shutdown();
-				})
-		}))
-		.into_any_element()
+impl RenderOnce for Variants {
+	fn render(self, window: &mut gpui::Window, cx: &mut App) -> impl IntoElement {
+		h_flex()
+			.gap_2()
+			.bg(gray_300())
+			.children(self.available_emoji.clone().into_iter().map(|variant| {
+				div()
+					.child(variant.glyph)
+					.text_size(self.font_size)
+					.cursor_pointer()
+					.id("hi")
+					.hover(|s| s.bg(hsla(0., 0., 0., 0.1)))
+					.on_click(move |_, _, cx: &mut App| {
+						insert_emoji(variant.glyph, cx);
+						cx.shutdown();
+					})
+			}))
+			.into_any_element()
+	}
 }

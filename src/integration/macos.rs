@@ -2,8 +2,8 @@
 
 use tracing::debug;
 
-/// Sets the application activation policy to Accessory so it doesn't appear in the Dock.
-/// TODO: Help this get merged into GPUI-CE (https://github.com/zed-industries/zed/pull/43822)
+/// Sets the application activation policy to Accessory so it doesn't appear in
+/// the Dock. TODO: Help this get merged into GPUI-CE (https://github.com/zed-industries/zed/pull/43822)
 pub(crate) fn set_accessory_policy() {
 	debug!("setting macOS activation policy to Accessory");
 	unsafe {

@@ -16,7 +16,6 @@ global-hotkey = { version = "0.7.0", optional = true }
 daemonize = { version = "0.5.0", optional = true }
 service-manager = { version = "0.10.0", optional = true }
 enigo = "0.6.1"
-mouse_position = "0.1.4"
 nonempty = "0.12.0"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0"
@@ -27,6 +26,7 @@ tracing-appender = "0.2.4"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 wl-clipboard-rs = "0.9.3"
+hyprland = "0.3.12"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 tracing-oslog = "0.3.0"

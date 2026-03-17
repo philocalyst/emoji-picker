@@ -1,11 +1,12 @@
-//! Algorithm for determining emoji row width and count based on container dimensions.
+//! Algorithm for determining emoji row width and count based on container
+//! dimensions.
 
 use gpui::Pixels;
 
 pub(crate) struct EmojiSizing {
 	pub emojis_per_row: usize,
-	pub emoji_size: Pixels,
-	pub list_padding: Pixels,
+	pub emoji_size:     Pixels,
+	pub list_padding:   Pixels,
 }
 
 pub(crate) fn calculate_emoji_sizing(container_width: f64, rem_size: Pixels) -> EmojiSizing {
@@ -22,8 +23,8 @@ pub(crate) fn calculate_emoji_sizing(container_width: f64, rem_size: Pixels) -> 
 
 	let mut best_size = EmojiSizing {
 		emojis_per_row: MIN_EMOJIS_PER_ROW,
-		emoji_size: Pixels::from(0.0),
-		list_padding: Pixels::from(0.0),
+		emoji_size:     Pixels::from(0.0),
+		list_padding:   Pixels::from(0.0),
 	};
 
 	for emojis_per_row in MIN_EMOJIS_PER_ROW..=MAX_EMOJIS_PER_ROW {

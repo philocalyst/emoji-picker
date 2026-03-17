@@ -2,34 +2,29 @@
 
 use emoji::Emoji;
 use gpui::{Entity, FocusHandle, Pixels};
+use gpui_component::list::ListState;
 use nonempty::NonEmpty;
 
 use crate::components::list::types::EmojiListDelegate;
 
-use gpui_component::list::ListState;
-
 pub(crate) struct Picker {
-	pub(crate) focus_handle: FocusHandle,
+	pub(crate) focus_handle:      FocusHandle,
 	pub(crate) body_focus_handle: FocusHandle,
-	pub(crate) selected_emoji: Option<&'static Emoji>,
-	pub(crate) list_state: Entity<ListState<EmojiListDelegate>>,
-	pub(crate) _padding: Pixels,
-	pub(crate) _subscription: gpui::Subscription,
+	pub(crate) selected_emoji:    Option<&'static Emoji>,
+	pub(crate) list_state:        Entity<ListState<EmojiListDelegate>>,
+	pub(crate) _padding:          Pixels,
+	pub(crate) _subscription:     gpui::Subscription,
 }
 
 impl gpui::Focusable for Picker {
-	fn focus_handle(&self, _: &gpui::App) -> FocusHandle {
-		self.focus_handle.clone()
-	}
+	fn focus_handle(&self, _: &gpui::App) -> FocusHandle { self.focus_handle.clone() }
 }
 
 pub(crate) struct SelectedEmoji(pub Option<NonEmpty<Emoji>>);
 impl gpui::Global for SelectedEmoji {}
 
 impl Default for SelectedEmoji {
-	fn default() -> Self {
-		Self(None)
-	}
+	fn default() -> Self { Self(None) }
 }
 
 pub(crate) struct ToneIndex(pub u8);
@@ -49,9 +44,7 @@ impl ToneIndex {
 }
 
 impl Default for ToneIndex {
-	fn default() -> Self {
-		Self(0)
-	}
+	fn default() -> Self { Self(0) }
 }
 
 #[derive(Clone, Copy)]
@@ -60,9 +53,7 @@ pub(crate) struct PopoverState {
 }
 
 impl Default for PopoverState {
-	fn default() -> Self {
-		Self { open_emoji: None }
-	}
+	fn default() -> Self { Self { open_emoji: None } }
 }
 
 impl gpui::Global for PopoverState {}

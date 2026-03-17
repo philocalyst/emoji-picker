@@ -1,10 +1,10 @@
-//! Picker rendering: the main picker view that composes the list and action handlers.
+//! Picker rendering: the main picker view that composes the list and action
+//! handlers.
 
 use gpui::{Context, Edges, Focusable, InteractiveElement, IntoElement, ParentElement, Render, Styled, Window, px};
 use gpui_component::{StyledExt, gray_800, list::List, purple_400, v_flex};
 
-use crate::components::types::{Picker, ToneIndex};
-use crate::keys::*;
+use crate::{components::types::{Picker, ToneIndex}, keys::*};
 
 impl Render for Picker {
 	fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {

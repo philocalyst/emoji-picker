@@ -1,30 +1,18 @@
-//! Application lifecycle management for both service and non-service configurations.
-
-#[cfg(feature = "service")]
-use std::time::Duration;
-
-use gpui::{
-	AnyWindowHandle, App, AppContext, Application, Entity, Hsla,
-	WindowBounds, WindowKind, WindowOptions,
-};
-use gpui_component::{
-	PixelsExt, Root, ThemeColor,
-	theme::{self, Theme, ThemeMode},
-};
-use tracing::{debug, info};
+//! Application lifecycle management for both service and non-service
+//! configurations.
 
 #[cfg(feature = "service")]
 use std::thread;
 #[cfg(feature = "service")]
-use global_hotkey::{
-	GlobalHotKeyEvent, GlobalHotKeyManager,
-	hotkey::{Code, HotKey, Modifiers},
-};
+use std::time::Duration;
 
-use crate::components::Picker;
-use crate::components::types::{PopoverState, ToneIndex};
-use crate::keys::{self, Quit};
-use crate::window_setup;
+#[cfg(feature = "service")]
+use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey, Modifiers}};
+use gpui::{AnyWindowHandle, App, AppContext, Application, Entity, Hsla, WindowBounds, WindowKind, WindowOptions};
+use gpui_component::{PixelsExt, Root, ThemeColor, theme::{self, Theme, ThemeMode}};
+use tracing::{debug, info};
+
+use crate::{components::{Picker, types::{PopoverState, ToneIndex}}, keys::{self, Quit}, window_setup};
 
 #[allow(dead_code)]
 pub(crate) struct AppState {
@@ -117,7 +105,10 @@ pub(crate) fn run_app() {
 
 								#[cfg(target_os = "linux")]
 								{
-									use crate::integration::linux::{LinuxSession, detect_linux_session, capture_hyprland_active_window, PendingInsertTarget};
+									use crate::integration::linux::{
+										LinuxSession, PendingInsertTarget, capture_hyprland_active_window,
+										detect_linux_session,
+									};
 									if detect_linux_session() == LinuxSession::WaylandHyprland {
 										let target = capture_hyprland_active_window();
 										cx.set_global::<PendingInsertTarget>(target);
@@ -138,7 +129,9 @@ pub(crate) fn run_app() {
 		{
 			#[cfg(target_os = "linux")]
 			{
-				use crate::integration::linux::{LinuxSession, detect_linux_session, capture_hyprland_active_window, PendingInsertTarget};
+				use crate::integration::linux::{
+					LinuxSession, PendingInsertTarget, capture_hyprland_active_window, detect_linux_session,
+				};
 				if detect_linux_session() == LinuxSession::WaylandHyprland {
 					let target = capture_hyprland_active_window();
 					cx.set_global::<PendingInsertTarget>(target);

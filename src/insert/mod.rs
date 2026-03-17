@@ -1,24 +1,27 @@
 //! Cross-platform emoji insertion dispatcher.
 
 mod automated;
+
+#[cfg(target_os = "linux")]
 mod unassisted;
 
 #[cfg(target_os = "linux")]
 mod wayland;
 
 use std::{thread, time::Duration};
+
 use tracing::debug;
 #[cfg(target_os = "linux")]
 use tracing::error;
+
+static INSERT_DELAY: Duration = Duration::from_millis(75);
 
 pub(crate) fn insert_emoji(emoji: &str, cx: &gpui::App) {
 	let emoji_owned = emoji.to_string();
 	debug!(emoji = %emoji, "inserting emoji");
 
 	#[cfg(target_os = "linux")]
-	let target = cx
-		.try_global::<crate::integration::linux::PendingInsertTarget>()
-		.cloned();
+	let target = cx.try_global::<crate::integration::linux::PendingInsertTarget>().cloned();
 
 	#[cfg(not(target_os = "linux"))]
 	let _ = cx;
@@ -26,7 +29,7 @@ pub(crate) fn insert_emoji(emoji: &str, cx: &gpui::App) {
 	thread::spawn(move || {
 		#[cfg(target_os = "macos")]
 		{
-			thread::sleep(Duration::from_millis(75));
+			thread::sleep(INSERT_DELAY);
 			automated::insert_enigo(&emoji_owned);
 			return;
 		}
@@ -37,7 +40,7 @@ pub(crate) fn insert_emoji(emoji: &str, cx: &gpui::App) {
 
 			match detect_linux_session() {
 				LinuxSession::X11 => {
-					thread::sleep(Duration::from_millis(75));
+					thread::sleep(INSERT_DELAY);
 					automated::insert_enigo(&emoji_owned);
 				}
 				LinuxSession::WaylandHyprland => {
