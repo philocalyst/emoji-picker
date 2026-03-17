@@ -1,7 +1,5 @@
 //! Renders the skin tone variant overlay row.
 
-use std::{thread, time::Duration};
-
 use emoji::Emoji;
 use gpui::{
 	App, InteractiveElement, IntoElement, ParentElement, Pixels, Render, RenderOnce,
@@ -9,7 +7,7 @@ use gpui::{
 };
 use gpui_component::{gray_300, h_flex};
 
-use crate::{components::variants::types::Variants, insert::insert_emoji};
+use crate::{components::variants::types::Variants, insert::close_and_insert};
 
 impl RenderOnce for Variants {
 	fn render(self, window: &mut gpui::Window, cx: &mut App) -> impl IntoElement {
@@ -24,9 +22,7 @@ impl RenderOnce for Variants {
 					.id("hi")
 					.hover(|s| s.bg(hsla(0., 0., 0., 0.1)))
 					.on_click(move |_, _, cx: &mut App| {
-						insert_emoji(variant.glyph, cx);
-						thread::sleep(Duration::from_millis(100));
-						cx.quit();
+						close_and_insert(variant.glyph, cx);
 					})
 			}))
 			.into_any_element()

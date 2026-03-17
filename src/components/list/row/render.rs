@@ -1,8 +1,6 @@
 //! Row rendering: each emoji cell with selection highlight, tooltips, and
 //! popover support.
 
-use std::{thread, time::Duration};
-
 use gpui::{
 	App, BorrowAppContext, BoxShadow, Edges, Hsla, InteractiveElement, IntoElement, MouseButton,
 	ParentElement, Render, RenderOnce, StatefulInteractiveElement, StyleRefinement, Styled, Window,
@@ -16,7 +14,7 @@ use crate::{
 		types::{PopoverState, ToneIndex},
 		variants,
 	},
-	insert::insert_emoji,
+	insert::close_and_insert,
 };
 
 impl RenderOnce for EmojiRow {
@@ -103,9 +101,7 @@ impl RenderOnce for EmojiRow {
 								if state.open_emoji == Some(emoji) {
 									return;
 								}
-								insert_emoji(pure_emoji, cx);
-								thread::sleep(Duration::from_millis(100));
-								cx.quit();
+								close_and_insert(pure_emoji, cx);
 							})
 							.into_any_element(),
 						selected: is_open,
@@ -128,9 +124,7 @@ impl RenderOnce for EmojiRow {
 				} else {
 					base_element
 						.on_click(move |_, _, cx: &mut App| {
-							insert_emoji(pure_emoji, cx);
-							thread::sleep(Duration::from_millis(200));
-							cx.quit();
+							close_and_insert(pure_emoji, cx);
 						})
 						.into_any_element()
 				}

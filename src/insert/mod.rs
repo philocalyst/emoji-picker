@@ -14,9 +14,16 @@ use tracing::debug;
 #[cfg(target_os = "linux")]
 use tracing::error;
 
+use crate::lifecycle::AppState;
+
 static INSERT_DELAY: Duration = Duration::from_millis(75);
 
-pub(crate) fn insert_emoji(emoji: &str, cx: &gpui::App) {
+/// How long to keep the process alive after the window closes so the
+/// background insertion thread can finish its work.
+#[cfg(not(feature = "service"))]
+static LINGER_AFTER_CLOSE: Duration = Duration::from_millis(150);
+
+fn insert_emoji(emoji: &str, cx: &gpui::App) {
 	let emoji_owned = emoji.to_string();
 	debug!(emoji = %emoji, "inserting emoji");
 
@@ -55,4 +62,29 @@ pub(crate) fn insert_emoji(emoji: &str, cx: &gpui::App) {
 			}
 		}
 	});
+}
+
+/// Insert effectively
+pub(crate) fn close_and_insert(emoji: &str, cx: &mut gpui::App) {
+	// Start the background insertion (types into the now-focused app).
+	insert_emoji(emoji, cx);
+
+	// Begin closedown sequence
+	cx.shutdown();
+
+	// In service mode the app keeps running, so nothing else to do.
+	// In non-service mode we need to quit eventually, but only after
+	// the insertion thread has had time to finish.
+	#[cfg(not(feature = "service"))]
+	{
+		cx.spawn(|ctx: &mut gpui::AsyncApp| {
+			let ctx = ctx.clone();
+			async move {
+				ctx.background_executor().timer(LINGER_AFTER_CLOSE).await;
+
+				let _ = ctx.update(|cx| cx.quit());
+			}
+		})
+		.detach();
+	}
 }

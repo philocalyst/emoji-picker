@@ -1,7 +1,5 @@
 //! Picker behavior: construction, navigation, selection, and search focus.
 
-use std::{thread, time::Duration};
-
 use emoji::Emoji;
 use gpui::{App, AppContext, BorrowAppContext, Context, Focusable, Window};
 use gpui_component::{
@@ -17,7 +15,7 @@ use crate::{
 		types::{Picker, PopoverState, SelectedEmoji},
 	},
 	emoji_sizing::calculate_emoji_sizing,
-	insert::insert_emoji,
+	insert::close_and_insert,
 	keys::Quit,
 };
 
@@ -107,9 +105,7 @@ impl Picker {
 			.and_then(|ix| self.get_emoji_at_path(ix, cx));
 
 		if let Some(emoji) = selected_emoji {
-			insert_emoji(emoji.glyph, cx);
-			thread::sleep(Duration::from_millis(100));
-			cx.quit();
+			close_and_insert(emoji.glyph, cx);
 		}
 	}
 
