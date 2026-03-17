@@ -13,7 +13,7 @@ use global_hotkey::{
 };
 use gpui::{
 	AnyWindowHandle, App, AppContext, Application, Entity, Hsla, WindowBounds, WindowKind,
-	WindowOptions,
+	WindowOptions, px, size,
 };
 use gpui_component::{
 	PixelsExt, Root, ThemeColor,
@@ -161,13 +161,14 @@ pub(crate) fn run_app() {
 
 fn initialize(cx: &mut App) {
 	let rem_size = 16.0;
-	let displays = cx.displays();
-	let display = displays.first().expect("no display found");
-	let display_size = display.bounds().size;
+	let display_size =
+		cx.displays().first().map(|d| d.bounds().size).unwrap_or_else(|| size(px(1280.0), px(720.0)));
+
 	let initial_width = (display_size.width.as_f32() * 0.25) + (rem_size * 2.0);
 	let initial_height = (display_size.height.as_f32() * 0.4) + (rem_size * 4.0);
 
 	let bounds = window_setup::get_bounds(initial_width, initial_height, display_size, cx);
+
 	debug!(?bounds, "opening picker window");
 
 	cx.open_window(
