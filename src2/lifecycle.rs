@@ -1,1 +1,0 @@
-//! For the application lifecycle management, both brief (For the non-service configuration, where it only lasts until emoji insert, and the service configuration, where the lifetime is the entire length of the service)
