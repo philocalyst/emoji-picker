@@ -6,7 +6,7 @@ use enigo::{Enigo, Keyboard, Settings};
 pub(crate) fn insert_enigo(emoji: &str) {
 	#[cfg(not(target_os = "linux"))]
 	{
-		use tracing::info;
+		
 
 		let mut enigo = Enigo::new(&Settings::default()).unwrap();
 		enigo.text(emoji).unwrap();

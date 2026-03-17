@@ -14,7 +14,6 @@ use tracing::debug;
 #[cfg(target_os = "linux")]
 use tracing::error;
 
-use crate::lifecycle::AppState;
 
 static INSERT_DELAY: Duration = Duration::from_millis(75);
 

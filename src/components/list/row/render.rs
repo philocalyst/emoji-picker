@@ -3,8 +3,8 @@
 
 use gpui::{
 	App, BorrowAppContext, BoxShadow, Edges, Hsla, InteractiveElement, IntoElement, MouseButton,
-	ParentElement, Render, RenderOnce, StatefulInteractiveElement, StyleRefinement, Styled, Window,
-	div, hsla, px,
+	ParentElement, RenderOnce, StatefulInteractiveElement, StyleRefinement, Styled, Window, div,
+	hsla, px,
 };
 use gpui_component::{StyledExt, h_flex, popover::Popover, tooltip::Tooltip};
 
