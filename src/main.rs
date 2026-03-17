@@ -4,9 +4,18 @@ use emoji::Emoji;
 use emoji_search;
 #[cfg(not(target_os = "linux"))]
 use enigo::{Enigo, Keyboard, Settings};
-use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey, Modifiers}};
-use gpui::{Action, AnyWindowHandle, App, AppContext, Application, Bounds, Entity, Hsla, KeyBinding, Pixels, Size, WindowBounds, WindowKind, WindowOptions, actions, point, px, size};
-use gpui_component::{PixelsExt, Root, ThemeColor, theme::{self, Theme, ThemeMode}};
+use global_hotkey::{
+	GlobalHotKeyEvent, GlobalHotKeyManager,
+	hotkey::{Code, HotKey, Modifiers},
+};
+use gpui::{
+	Action, AnyWindowHandle, App, AppContext, Application, Bounds, Entity, Hsla, KeyBinding, Pixels,
+	Size, WindowBounds, WindowKind, WindowOptions, actions, point, px, size,
+};
+use gpui_component::{
+	PixelsExt, Root, ThemeColor,
+	theme::{self, Theme, ThemeMode},
+};
 use mouse_position::mouse_position::Mouse;
 use nonempty::NonEmpty;
 use serde::Deserialize;
@@ -15,9 +24,6 @@ use service_manager::*;
 use tracing::{error, warn};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-// TODO: This needs finally implement the hold for options logic
-// Wanted to borrow inspiration from the mario kart screen, with genders you can move through
-// with arrow keys, and have tones in a 3x3?
 use crate::picker::Picker;
 
 mod core_row;
@@ -92,7 +98,9 @@ struct SelectedEmoji(Option<NonEmpty<Emoji>>);
 impl gpui::Global for SelectedEmoji {}
 
 impl Default for SelectedEmoji {
-	fn default() -> Self { Self(None) }
+	fn default() -> Self {
+		Self(None)
+	}
 }
 
 /// The tone we're currently on.
@@ -113,7 +121,9 @@ impl ToneIndex {
 }
 
 impl Default for ToneIndex {
-	fn default() -> Self { Self(0) }
+	fn default() -> Self {
+		Self(0)
+	}
 }
 
 // -- Wayland / Hyprland support ---------------------------------------------------
@@ -196,7 +206,7 @@ fn capture_hyprland_active_window() -> PendingInsertTarget {
 
 	PendingInsertTarget {
 		hyprland_address: json["address"].as_str().map(String::from),
-		class:            json["class"].as_str().map(String::from),
+		class: json["class"].as_str().map(String::from),
 	}
 }
 
@@ -206,7 +216,9 @@ pub struct PopoverState {
 }
 
 impl Default for PopoverState {
-	fn default() -> Self { Self { open_emoji: None } }
+	fn default() -> Self {
+		Self { open_emoji: None }
+	}
 }
 
 impl gpui::Global for PopoverState {}
@@ -248,15 +260,15 @@ fn install_and_start_service() {
 
 	println!("Installing service...");
 	match manager.install(ServiceInstallCtx {
-		label:             label.clone(),
-		program:           exe_path,
-		args:              vec!["--service".into()],
-		contents:          None,
-		username:          None,
+		label: label.clone(),
+		program: exe_path,
+		args: vec!["--service".into()],
+		contents: None,
+		username: None,
 		working_directory: None,
-		environment:       None,
-		autostart:         true,
-		restart_policy:    RestartPolicy::Always { delay_secs: Some(5) },
+		environment: None,
+		autostart: true,
+		restart_policy: RestartPolicy::Always { delay_secs: Some(5) },
 	}) {
 		Ok(_) => println!("Service installed successfully."),
 		Err(e) => eprintln!("Note: Service install failed (it might already exist): {}", e),
@@ -510,8 +522,7 @@ pub(crate) fn insert_emoji(emoji: &str, cx: &App) {
 			match detect_linux_session() {
 				LinuxSession::X11 => {
 					thread::sleep(Duration::from_millis(75));
-					let mut enigo =
-						enigo::Enigo::new(&enigo::Settings::default()).unwrap();
+					let mut enigo = enigo::Enigo::new(&enigo::Settings::default()).unwrap();
 					enigo::Keyboard::text(&mut enigo, &emoji_owned).unwrap();
 				}
 				LinuxSession::WaylandHyprland => {
@@ -541,11 +552,8 @@ fn wl_copy(text: &str) -> std::io::Result<()> {
 	use std::io::Write;
 	use std::process::{Command, Stdio};
 
-	let mut child = Command::new("wl-copy")
-		.arg("--type")
-		.arg("text/plain")
-		.stdin(Stdio::piped())
-		.spawn()?;
+	let mut child =
+		Command::new("wl-copy").arg("--type").arg("text/plain").stdin(Stdio::piped()).spawn()?;
 
 	if let Some(mut stdin) = child.stdin.take() {
 		stdin.write_all(text.as_bytes())?;
@@ -611,9 +619,7 @@ fn insert_emoji_wayland_hyprland(emoji: &str, target: Option<&PendingInsertTarge
 		format!("CONTROL, V, address:{address}")
 	};
 
-	let result = Command::new("hyprctl")
-		.args(["dispatch", "sendshortcut", &shortcut])
-		.output();
+	let result = Command::new("hyprctl").args(["dispatch", "sendshortcut", &shortcut]).output();
 
 	if let Err(e) = result {
 		error!("hyprctl dispatch sendshortcut failed: {e}");
