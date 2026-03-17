@@ -7,12 +7,28 @@ use std::thread;
 use std::time::Duration;
 
 #[cfg(feature = "service")]
-use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, hotkey::{Code, HotKey, Modifiers}};
-use gpui::{AnyWindowHandle, App, AppContext, Application, Entity, Hsla, WindowBounds, WindowKind, WindowOptions};
-use gpui_component::{PixelsExt, Root, ThemeColor, theme::{self, Theme, ThemeMode}};
+use global_hotkey::{
+	GlobalHotKeyEvent, GlobalHotKeyManager,
+	hotkey::{Code, HotKey, Modifiers},
+};
+use gpui::{
+	AnyWindowHandle, App, AppContext, Application, Entity, Hsla, WindowBounds, WindowKind,
+	WindowOptions,
+};
+use gpui_component::{
+	PixelsExt, Root, ThemeColor,
+	theme::{self, Theme, ThemeMode},
+};
 use tracing::{debug, info};
 
-use crate::{components::{Picker, types::{PopoverState, ToneIndex}}, keys::{self, Quit}, window_setup};
+use crate::{
+	components::{
+		Picker,
+		types::{PopoverState, ToneIndex},
+	},
+	keys::{self, Quit},
+	window_setup,
+};
 
 #[allow(dead_code)]
 pub(crate) struct AppState {

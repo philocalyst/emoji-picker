@@ -1,11 +1,23 @@
 //! Row rendering: each emoji cell with selection highlight, tooltips, and
 //! popover support.
 
-use gpui::{App, BorrowAppContext, BoxShadow, Edges, Hsla, InteractiveElement, IntoElement, MouseButton, ParentElement, Render, RenderOnce, StatefulInteractiveElement, StyleRefinement, Styled, Window, div, hsla, px};
+use std::{thread, time::Duration};
+
+use gpui::{
+	App, BorrowAppContext, BoxShadow, Edges, Hsla, InteractiveElement, IntoElement, MouseButton,
+	ParentElement, Render, RenderOnce, StatefulInteractiveElement, StyleRefinement, Styled, Window,
+	div, hsla, px,
+};
 use gpui_component::{StyledExt, h_flex, popover::Popover, tooltip::Tooltip};
 
 use super::types::{EmojiRow, EmojiWrapper};
-use crate::{components::{types::{PopoverState, ToneIndex}, variants}, insert::insert_emoji};
+use crate::{
+	components::{
+		types::{PopoverState, ToneIndex},
+		variants,
+	},
+	insert::insert_emoji,
+};
 
 impl RenderOnce for EmojiRow {
 	fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
@@ -37,24 +49,24 @@ impl RenderOnce for EmojiRow {
 					.id(pure_emoji)
 					.shadow(vec![
 						BoxShadow {
-							color:         hsla(0.0, 0.0, 0.0, 0.25),
-							offset:        gpui::point(px(0.), px(1.)),
-							blur_radius:   px(2.),
+							color: hsla(0.0, 0.0, 0.0, 0.25),
+							offset: gpui::point(px(0.), px(1.)),
+							blur_radius: px(2.),
 							spread_radius: px(0.),
 						},
 						BoxShadow {
-							color:         hsla(0.0, 0.0, 0.0, 0.15),
-							offset:        gpui::point(px(0.), px(8.)),
-							blur_radius:   px(16.),
+							color: hsla(0.0, 0.0, 0.0, 0.15),
+							offset: gpui::point(px(0.), px(8.)),
+							blur_radius: px(16.),
 							spread_radius: px(-2.),
 						},
 					]);
 
 				if is_selected {
 					base_element = base_element.bg(hsla(0.0, 0.0, 1.0, 0.2)).shadow(vec![BoxShadow {
-						color:         hsla(0.78, 0.6, 0.5, 0.8),
-						offset:        gpui::point(gpui::px(0.), gpui::px(4.)),
-						blur_radius:   gpui::px(12.),
+						color: hsla(0.78, 0.6, 0.5, 0.8),
+						offset: gpui::point(gpui::px(0.), gpui::px(4.)),
+						blur_radius: gpui::px(12.),
 						spread_radius: gpui::px(7.),
 					}]);
 				}
@@ -62,9 +74,9 @@ impl RenderOnce for EmojiRow {
 				let base_element = base_element
 					.hover(move |s: StyleRefinement| {
 						s.shadow(vec![BoxShadow {
-							color:         hsla(0.78, 0.6, 0.5, 0.8),
-							offset:        gpui::point(gpui::px(0.), gpui::px(4.)),
-							blur_radius:   gpui::px(12.),
+							color: hsla(0.78, 0.6, 0.5, 0.8),
+							offset: gpui::point(gpui::px(0.), gpui::px(4.)),
+							blur_radius: gpui::px(12.),
 							spread_radius: gpui::px(7.),
 						}])
 					})
@@ -80,7 +92,7 @@ impl RenderOnce for EmojiRow {
 						variants::types::Variants { font_size, available_emoji: emoji.variants.into() };
 
 					let wrapper = EmojiWrapper {
-						content:  base_element
+						content: base_element
 							.on_mouse_down(MouseButton::Right, move |_, _, cx: &mut App| {
 								cx.update_global::<PopoverState, _>(|state, _| {
 									state.open_emoji = Some(emoji);
@@ -92,7 +104,8 @@ impl RenderOnce for EmojiRow {
 									return;
 								}
 								insert_emoji(pure_emoji, cx);
-								cx.shutdown();
+								thread::sleep(Duration::from_millis(100));
+								cx.quit();
 							})
 							.into_any_element(),
 						selected: is_open,
@@ -116,7 +129,8 @@ impl RenderOnce for EmojiRow {
 					base_element
 						.on_click(move |_, _, cx: &mut App| {
 							insert_emoji(pure_emoji, cx);
-							cx.shutdown();
+							thread::sleep(Duration::from_millis(200));
+							cx.quit();
 						})
 						.into_any_element()
 				}

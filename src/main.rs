@@ -1,4 +1,4 @@
-//! B.O.B (BOB prOffers flamBoyance): a fast, keyboard-driven emoji picker.
+//! B.O.B (BOB offers... beauty): a fast, keyboard-driven emoji picker.
 
 mod components;
 mod emoji_sizing;
